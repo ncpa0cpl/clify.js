@@ -1,9 +1,5 @@
-import chalk from "chalk";
 import { Argument } from "./Arguments/argument";
 import { MainCommand } from "./Commands/main-command";
-
-const mainCommand = MainCommand["init"]();
-
 /**
  * Initiates and configures the script. This method takes one
  * argument, an initiation callback.
@@ -28,18 +24,11 @@ const mainCommand = MainCommand["init"]();
  *     });
  *   });
  */
-function configure(initialize: (mainCommand: MainCommand) => void) {
-  try {
-    initialize(mainCommand);
-    mainCommand["start"]();
-  } catch (e) {
-    console.error(
-      chalk.redBright("An error occurred when running this script.")
-    );
-    if (e instanceof Error) console.error(e.message);
-  }
-}
-
+declare function configure(initialize: (mainCommand: MainCommand) => void): void;
 export { configure, Argument, MainCommand };
-
-export default { configure, Argument, MainCommand };
+declare const _default: {
+    configure: typeof configure;
+    Argument: typeof Argument;
+    MainCommand: typeof MainCommand;
+};
+export default _default;

@@ -17,8 +17,19 @@
     "sourceType": "module"
   },
   "rules": {
+    "max-len": [
+      2,
+      80,
+      4,
+      {
+        "ignoreUrls": true,
+        "ignoreStrings": true,
+        "ignoreRegExpLiterals": true,
+        "ignoreTemplateLiterals": true
+      }
+    ],
     "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "double"],
+    "quotes": ["error", "double", { "avoidEscape": true }],
     "semi": ["error", "always"],
     "@typescript-eslint/consistent-type-imports": 2,
     "@typescript-eslint/member-delimiter-style": 2,

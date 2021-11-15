@@ -1,61 +1,73 @@
-import chalk from "chalk";
 import path from "path";
 import { Arguments } from "../Arguments/argument-parser";
 import { Command } from "./command";
 import { SubCommand } from "./sub-command";
-import type { CommandImplementation, CommandInitiator } from "./types";
+import type {
+  CommandInitializeCallback,
+  MainCommandInitializeCallback,
+} from "./types";
 
 export class MainCommand extends Command {
+  protected static init() {
+    return new MainCommand();
+  }
+
   private isDefaultCommandSet = false;
 
-  constructor() {
+  private constructor() {
     super();
     const scriptPath = process.argv[1];
 
     this.name = path.parse(scriptPath).name;
   }
 
-  setMainAction(initiator: () => CommandImplementation) {
-    this.define(initiator);
+  protected start() {
+    const subCommandsPath = Arguments.getSubCommandsPath();
+
+    if (subCommandsPath.length === 0 && this.isDefaultCommandSet)
+      return this.execute();
+
+    let command: Command | undefined = this;
+
+    while (true) {
+      if (subCommandsPath.length === 0) break;
+      if (!command) break;
+
+      const keyword = subCommandsPath.shift()!;
+
+      command = command["findChildCommand"](keyword);
+    }
+
+    if (command) return command["execute"]();
+  }
+
+  /**
+   * Sets the default behavior for this script when started from
+   * the CLI without any sub-commands.
+   */
+  setMainAction(initialize: MainCommandInitializeCallback) {
+    this.define(initialize);
     this.isDefaultCommandSet = true;
   }
 
-  setDescription(description: string) {
-    this.description = description;
-  }
-
-  setName(name: string) {
-    this.name = name;
-  }
-
-  addSubCommand(keyword: string, initiator: CommandInitiator) {
-    const subCommand = new SubCommand(keyword, initiator);
+  /**
+   * Creates a sub-command for this script.
+   *
+   * @example
+   *   mainCommand.addSubCommand("cmdName", () => {
+   *     return {
+   *       run() {
+   *         console.log("Sub Command ran.");
+   *       },
+   *     };
+   *   });
+   *
+   *   // CLI: node my-script.js cmdName
+   *   // Output: "Sub Command ran."
+   */
+  addSubCommand(keyword: string, initialize: CommandInitializeCallback) {
+    const subCommand = new SubCommand(keyword, initialize);
     this.addChildCommand(subCommand);
     return subCommand;
-  }
-
-  protected start() {
-    try {
-      const subCommandsPath = Arguments.getSubCommandsPath();
-
-      if (subCommandsPath.length === 0 && this.isDefaultCommandSet)
-        return this.execute();
-
-      let command: Command | undefined = this;
-
-      while (true) {
-        if (subCommandsPath.length === 0) break;
-        if (!command) break;
-
-        const keyword = subCommandsPath.shift()!;
-
-        command = command["findChildCommand"](keyword);
-      }
-
-      if (command) return command["execute"]();
-    } catch (e) {
-      console.error(chalk.redBright("An error occurred when running this script."));
-      if (e instanceof Error) console.error(e.message);
-    }
   }
 }

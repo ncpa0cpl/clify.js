@@ -1,4 +1,4 @@
-import type { ArgumentContext } from "./argument";
+import type { ArgumentContext } from "./types";
 import { isArgName } from "./Utils/is-arg-name";
 import { parseArgumentValue } from "./Utils/parse-argument-value";
 
@@ -34,7 +34,7 @@ class ArgumentParser {
     Object.freeze(this.subCommands);
   }
 
-  isArgumentSet(argument: ArgumentContext<any>) {
+  isArgumentSet(argument: ArgumentContext<any, any>) {
     return (
       this.arguments.has(argument["keyword"]) ||
       this.arguments.has(argument["flagChar"])
@@ -42,7 +42,8 @@ class ArgumentParser {
   }
 
   getArgument(
-    argument: ArgumentContext<any>
+    argument: ArgumentContext<any, any>,
+    throwError: (msg: string) => never
   ): string | number | boolean | undefined {
     if (this.arguments.has(argument["keyword"])) {
       return this.arguments.get(argument["keyword"])!;
@@ -57,7 +58,7 @@ class ArgumentParser {
     }
 
     if (argument["require"] === true) {
-      throw new Error("Missing required argument.");
+      throwError("Missing required argument.");
     }
 
     return undefined;

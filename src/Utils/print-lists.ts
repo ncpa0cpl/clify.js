@@ -55,7 +55,10 @@ export function printLists(lists: string[][], addLeftPadding = false) {
       const padLeftWidth = stringListLength(slicedCells) + wholeLeftPadding;
       const lastCellWidth = screenWidth - padLeftWidth;
 
-      const [firstChunk, ...chunks] = splitToNLengthChunks(lastCell, lastCellWidth);
+      const [firstChunk, ...chunks] = splitToNLengthChunks(
+        lastCell,
+        lastCellWidth
+      );
 
       slicedCells.push(firstChunk);
 

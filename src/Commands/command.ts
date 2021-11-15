@@ -1,7 +1,8 @@
+import chalk from "chalk";
 import { Argument } from "../Arguments/argument";
 import { printLists } from "../Utils/print-lists";
 import type { SubCommand } from "./sub-command";
-import type { CommandImplementation, CommandInitiator } from "./types";
+import type { CommandImplementation, CommandInitializeCallback } from "./types";
 
 const HelpFlag = Argument.define({
   flagChar: "-h",
@@ -11,12 +12,18 @@ const HelpFlag = Argument.define({
   description: "Show help for the command.",
 });
 
-const help = new HelpFlag();
-
 export class Command {
+  private static helpArgument?: Argument<"boolean", false>;
+
+  private static initHelpArg() {
+    if (!Command.helpArgument) {
+      Command.helpArgument = new HelpFlag();
+    }
+  }
+
   private childCommands: SubCommand[] = [];
   private implementation: CommandImplementation | undefined = undefined;
-  private initiator: CommandInitiator | undefined = undefined;
+  private initialize: CommandInitializeCallback | undefined = undefined;
 
   protected description = "";
   protected shortDescription = "";
@@ -26,26 +33,36 @@ export class Command {
     this.implementation = impl;
   }
 
-  protected initiate() {
-    if (this.initiator && !this.implementation) {
-      const data = this.initiator();
+  protected runInitialize() {
+    if (this.initialize && !this.implementation) {
+      Argument["startCommandInitialization"]();
 
-      this.setImplementation(data);
+      try {
+        Command.initHelpArg();
 
-      if (data.commandDescription) this.description = data.commandDescription;
-      if (data.shortDescription) this.shortDescription = data.shortDescription;
-      if (data.name) this.name = data.name;
+        const data = this.initialize();
+
+        this.setImplementation(data);
+
+        if (data.commandDescription) this.description = data.commandDescription;
+        if (data.shortDescription)
+          this.shortDescription = data.shortDescription;
+        if (data.displayName) this.name = data.displayName;
+      } finally {
+        Argument["endCommandInitialization"]();
+      }
     }
   }
 
-  protected define(initiator: CommandInitiator) {
-    this.initiator = initiator;
+  protected define(initialize: CommandInitializeCallback) {
+    this.initialize = initialize;
   }
 
   protected execute() {
-    this.initiate();
+    this.runInitialize();
 
-    if (help.isSet && help.value === true) return this.printHelpMessage();
+    if (Command.helpArgument?.isSet && Command.helpArgument.value === true)
+      return this.printHelpMessage();
 
     Argument["validateArguments"]();
     if (this.implementation) return this.implementation.run();
@@ -53,7 +70,11 @@ export class Command {
 
   protected addChildCommand(c: SubCommand) {
     if (this.findChildCommand(c["keyword"])) {
-      throw new Error("There cannot be multiple commands with the same keyword.");
+      throw new Error(
+        `${chalk.red(
+          "Internal Error:"
+        )} There cannot be multiple commands with the same keyword.`
+      );
     }
 
     this.childCommands.push(c);
@@ -89,5 +110,21 @@ export class Command {
 
     console.log("\nArguments:");
     printLists(argsInfo, true);
+  }
+
+  /**
+   * Sets the description of this command that will be displayed
+   * when looking up the `--help` for this command.
+   */
+  setDescription(description: string) {
+    this.description = description;
+  }
+
+  /**
+   * Sets the name that will be displayed for this Command in the
+   * command line interface.
+   */
+  setDisplayName(name: string) {
+    this.name = name;
   }
 }
