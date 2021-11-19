@@ -1,4 +1,8 @@
 {
+  "name": "clify.js",
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "version": "1.0.0",
   "devDependencies": {
     "@types/chalk": "^2.2.0",
     "@types/jest": "^27.0.2",
