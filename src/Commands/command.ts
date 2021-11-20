@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import { Argument } from "../Arguments/argument";
+import { groupByCategory } from "../Utils/group-by-category";
 import { printLists } from "../Utils/print-lists";
 import type { SubCommand } from "./sub-command";
 import type { CommandImplementation, CommandInitializeCallback } from "./types";
@@ -9,7 +10,7 @@ const HelpFlag = Argument.define({
   keyword: "--help",
   dataType: "boolean",
   displayName: "help",
-  description: "Show help for the command.",
+  description: "Show this help message.",
 });
 
 export class Command {
@@ -89,7 +90,7 @@ export class Command {
   }
 
   protected printHelpMessage() {
-    const argsInfo = Argument["getArgumentsInfo"]();
+    const argsInfo = groupByCategory(Argument["getArgumentsInfo"]());
     const commandName = this.getName();
 
     if (this.description) {
@@ -109,7 +110,15 @@ export class Command {
     }
 
     console.log("\nArguments:");
-    printLists(argsInfo, true);
+
+    for (const [category, args] of argsInfo) {
+      if (category.length > 0) console.log(`\n${category}:`);
+
+      printLists(
+        args.map((arg) => [arg.flagChar, arg.keyword, arg.description]),
+        true
+      );
+    }
   }
 
   /**

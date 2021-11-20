@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { compareStrings } from "../Utils/compare-strings";
 import { Arguments } from "./argument-parser";
 import type {
   ArgumentContext,
@@ -67,11 +68,19 @@ export abstract class Argument<
   }
 
   protected static getArgumentsInfo() {
-    return Argument.initiatedArguments.map((arg) => [
-      arg.context.flagChar,
-      arg.context.keyword,
-      arg.context.description ?? "",
-    ]);
+    return Argument.initiatedArguments
+      .sort((arg_0, arg_1) =>
+        compareStrings({ numCompare: true })(
+          arg_0.context.flagChar,
+          arg_1.context.flagChar
+        )
+      )
+      .map((arg) => ({
+        flagChar: arg.context.flagChar,
+        keyword: arg.context.keyword,
+        description: arg.context.description ?? "",
+        category: arg.context.category,
+      }));
   }
 
   protected static validateArguments() {
@@ -96,7 +105,7 @@ export abstract class Argument<
       }
     }
 
-    return (Arg as any) as Constructor<Argument<DT, R>>;
+    return Arg as any as Constructor<Argument<DT, R>>;
   }
 
   private context: ArgumentContext<DT, R>;

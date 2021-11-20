@@ -14,12 +14,24 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Argument = void 0;
 var chalk_1 = __importDefault(require("chalk"));
+var compare_strings_1 = require("../Utils/compare-strings");
 var argument_parser_1 = require("./argument-parser");
 var FLOATING_NUMBER_REGEX = /^[+-]?([0-9]*[.])?[0-9]+$/;
 /**
@@ -70,19 +82,34 @@ var Argument = /** @class */ (function () {
         return Argument._isCommandInitializing;
     };
     Argument.getArgumentsInfo = function () {
-        return Argument.initiatedArguments.map(function (arg) {
+        return Argument.initiatedArguments
+            .sort(function (arg_0, arg_1) {
+            return (0, compare_strings_1.compareStrings)({ numCompare: true })(arg_0.context.flagChar, arg_1.context.flagChar);
+        })
+            .map(function (arg) {
             var _a;
-            return [
-                arg.context.flagChar,
-                arg.context.keyword,
-                (_a = arg.context.description) !== null && _a !== void 0 ? _a : "",
-            ];
+            return ({
+                flagChar: arg.context.flagChar,
+                keyword: arg.context.keyword,
+                description: (_a = arg.context.description) !== null && _a !== void 0 ? _a : "",
+                category: arg.context.category,
+            });
         });
     };
     Argument.validateArguments = function () {
-        for (var _i = 0, _a = Argument.initiatedArguments; _i < _a.length; _i++) {
-            var arg = _a[_i];
-            arg.validate();
+        var e_1, _a;
+        try {
+            for (var _b = __values(Argument.initiatedArguments), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var arg = _c.value;
+                arg.validate();
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
         }
     };
     Argument.define = function (initData) {

@@ -70,6 +70,11 @@ export type ArgumentInitDataBase<R extends boolean> = {
    * `--help` menu.
    */
   description?: string;
+  /**
+   * The category name under which this argument will be
+   * displayed in the `--help` message.
+   */
+  category?: string;
 };
 
 export type ArgumentInitData<

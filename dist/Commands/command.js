@@ -1,4 +1,31 @@
 "use strict";
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,13 +33,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Command = void 0;
 var chalk_1 = __importDefault(require("chalk"));
 var argument_1 = require("../Arguments/argument");
+var group_by_category_1 = require("../Utils/group-by-category");
 var print_lists_1 = require("../Utils/print-lists");
 var HelpFlag = argument_1.Argument.define({
     flagChar: "-h",
     keyword: "--help",
     dataType: "boolean",
     displayName: "help",
-    description: "Show help for the command.",
+    description: "Show this help message.",
 });
 var Command = /** @class */ (function () {
     function Command() {
@@ -75,7 +103,8 @@ var Command = /** @class */ (function () {
         return this.name;
     };
     Command.prototype.printHelpMessage = function () {
-        var argsInfo = argument_1.Argument["getArgumentsInfo"]();
+        var e_1, _a;
+        var argsInfo = (0, group_by_category_1.groupByCategory)(argument_1.Argument["getArgumentsInfo"]());
         var commandName = this.getName();
         if (this.description) {
             (0, print_lists_1.printLists)([[commandName + ":", this.description]]);
@@ -91,7 +120,21 @@ var Command = /** @class */ (function () {
             (0, print_lists_1.printLists)(this.childCommands.map(function (child) { return child["getPrintableList"](); }), true);
         }
         console.log("\nArguments:");
-        (0, print_lists_1.printLists)(argsInfo, true);
+        try {
+            for (var argsInfo_1 = __values(argsInfo), argsInfo_1_1 = argsInfo_1.next(); !argsInfo_1_1.done; argsInfo_1_1 = argsInfo_1.next()) {
+                var _b = __read(argsInfo_1_1.value, 2), category = _b[0], args = _b[1];
+                if (category.length > 0)
+                    console.log("\n" + category + ":");
+                (0, print_lists_1.printLists)(args.map(function (arg) { return [arg.flagChar, arg.keyword, arg.description]; }), true);
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (argsInfo_1_1 && !argsInfo_1_1.done && (_a = argsInfo_1.return)) _a.call(argsInfo_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
     };
     /**
      * Sets the description of this command that will be displayed

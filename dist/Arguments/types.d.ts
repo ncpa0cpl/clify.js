@@ -57,6 +57,11 @@ export declare type ArgumentInitDataBase<R extends boolean> = {
      * `--help` menu.
      */
     description?: string;
+    /**
+     * The category name under which this argument will be
+     * displayed in the `--help` message.
+     */
+    category?: string;
 };
 export declare type ArgumentInitData<DT extends ArgumentDataType | undefined, R extends boolean> = ArgumentInitDataBase<R> & (TypeIsUndefined<DT> extends true ? {
     /**

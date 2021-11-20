@@ -30,7 +30,12 @@ export declare abstract class Argument<DT extends ArgumentDataType | undefined, 
     protected static startCommandInitialization(): void;
     protected static endCommandInitialization(): void;
     protected static isCommandInitializing(): boolean;
-    protected static getArgumentsInfo(): string[][];
+    protected static getArgumentsInfo(): {
+        flagChar: `-${string}`;
+        keyword: `--${string}`;
+        description: string;
+        category: string | undefined;
+    }[];
     protected static validateArguments(): void;
     static define<DT extends ArgumentDataType | undefined = undefined, R extends boolean = false>(initData: ArgumentInitData<DT, R>): Constructor<Argument<DT, R>>;
     private context;
