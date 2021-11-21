@@ -25,9 +25,9 @@ function compare(a, b) {
             var charCodeA = a.charCodeAt(index);
             var charCodeB = b.charCodeAt(index);
             if (charCodeA < charCodeB)
-                return 1;
-            if (charCodeA > charCodeB)
                 return -1;
+            if (charCodeA > charCodeB)
+                return 1;
         }
     }
     catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -37,7 +37,7 @@ function compare(a, b) {
         }
         finally { if (e_1) throw e_1.error; }
     }
-    return a.length > b.length ? -1 : 1;
+    return a.length > b.length ? 1 : -1;
 }
 function compareWithNumbers(a, b) {
     var e_2, _a;
@@ -54,18 +54,18 @@ function compareWithNumbers(a, b) {
             var aIsNumeric = (0, is_numerical_1.isNumerical)(substringA);
             var bIsNumeric = (0, is_numerical_1.isNumerical)(substringB);
             if (aIsNumeric && !bIsNumeric) {
-                return 1;
+                return -1;
             }
             if (!aIsNumeric && bIsNumeric) {
-                return -1;
+                return 1;
             }
             if (aIsNumeric && bIsNumeric) {
                 var numA = Number(substringA);
                 var numB = Number(substringB);
                 if (numA < numB)
-                    return 1;
-                if (numA > numB)
                     return -1;
+                if (numA > numB)
+                    return 1;
             }
             if (!aIsNumeric && !bIsNumeric) {
                 var substringCompare = compare(substringA, substringB);

@@ -60,7 +60,7 @@ var ArgumentParser = /** @class */ (function () {
         return (this.arguments.has(argument["keyword"]) ||
             this.arguments.has(argument["flagChar"]));
     };
-    ArgumentParser.prototype.getArgument = function (argument, throwError) {
+    ArgumentParser.prototype.getArgument = function (argument) {
         if (this.arguments.has(argument["keyword"])) {
             return this.arguments.get(argument["keyword"]);
         }
@@ -69,9 +69,6 @@ var ArgumentParser = /** @class */ (function () {
         }
         if (argument["default"] !== undefined) {
             return argument["default"];
-        }
-        if (argument["require"] === true) {
-            throwError("Missing required argument.");
         }
         return undefined;
     };

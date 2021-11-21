@@ -176,9 +176,7 @@ var Argument = /** @class */ (function () {
         if (Argument.hasMultipleArgumentsWithKeywordOrFlag(this.context.keyword, this.context.flagChar)) {
             this.throwInternalError("Duplicate argument instances declared within a Command.");
         }
-        if (this.context.require &&
-            !this.isSet &&
-            this.context.default === undefined) {
+        if (this.context.require && this._value === undefined) {
             this.throwArgumentError("Argument must be specified.");
         }
         this.value;
@@ -187,7 +185,7 @@ var Argument = /** @class */ (function () {
         return this.context.displayName || this.context.keyword;
     };
     Argument.prototype.getArgumentValue = function () {
-        var argValue = argument_parser_1.Arguments.getArgument(this.context, this.throwArgumentError.bind(this));
+        var argValue = argument_parser_1.Arguments.getArgument(this.context);
         return this.ensureDataType(argValue);
     };
     Argument.prototype.throwArgumentError = function (message) {
@@ -222,6 +220,10 @@ var Argument = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Argument.prototype.setDefault = function (v) {
+        this.context.default = v;
+        this._value = this.getArgumentValue();
+    };
     Argument._isCommandInitializing = false;
     Argument.initiatedArguments = [];
     return Argument;

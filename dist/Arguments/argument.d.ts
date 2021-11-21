@@ -61,4 +61,5 @@ export declare abstract class Argument<DT extends ArgumentDataType | undefined, 
      * Setting the Argument default value does not affect this property.
      */
     get isSet(): boolean;
+    setDefault(v: ResolveValueType<DT, true>): void;
 }

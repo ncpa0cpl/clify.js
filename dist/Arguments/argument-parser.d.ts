@@ -5,7 +5,7 @@ declare class ArgumentParser {
     constructor();
     private init;
     isArgumentSet(argument: ArgumentContext<any, any>): boolean;
-    getArgument(argument: ArgumentContext<any, any>, throwError: (msg: string) => never): string | number | boolean | undefined;
+    getArgument(argument: ArgumentContext<any, any>): string | number | boolean | undefined;
     getSubCommandsPath(): string[];
 }
 export declare const Arguments: ArgumentParser;
