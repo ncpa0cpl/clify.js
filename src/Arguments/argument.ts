@@ -197,7 +197,7 @@ export abstract class Argument<
     }
 
     // @ts-expect-error
-    this.ensureDataType(this.value);
+    this._value = this.ensureDataType(this.value);
   }
 
   private getName() {

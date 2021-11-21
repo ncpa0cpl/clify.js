@@ -180,7 +180,7 @@ var Argument = /** @class */ (function () {
             this.throwArgumentError("Argument must be specified.");
         }
         // @ts-expect-error
-        this.ensureDataType(this.value);
+        this._value = this.ensureDataType(this.value);
     };
     Argument.prototype.getName = function () {
         return this.context.displayName || this.context.keyword;
