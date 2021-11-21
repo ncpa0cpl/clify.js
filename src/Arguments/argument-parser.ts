@@ -42,8 +42,7 @@ class ArgumentParser {
   }
 
   getArgument(
-    argument: ArgumentContext<any, any>,
-    throwError: (msg: string) => never
+    argument: ArgumentContext<any, any>
   ): string | number | boolean | undefined {
     if (this.arguments.has(argument["keyword"])) {
       return this.arguments.get(argument["keyword"])!;
@@ -55,10 +54,6 @@ class ArgumentParser {
 
     if (argument["default"] !== undefined) {
       return argument["default"];
-    }
-
-    if (argument["require"] === true) {
-      throwError("Missing required argument.");
     }
 
     return undefined;

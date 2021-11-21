@@ -192,11 +192,7 @@ export abstract class Argument<
       );
     }
 
-    if (
-      this.context.require &&
-      !this.isSet &&
-      this.context.default === undefined
-    ) {
+    if (this.context.require && this._value === undefined) {
       this.throwArgumentError("Argument must be specified.");
     }
 
@@ -208,10 +204,7 @@ export abstract class Argument<
   }
 
   private getArgumentValue() {
-    const argValue = Arguments.getArgument(
-      this.context,
-      this.throwArgumentError.bind(this)
-    );
+    const argValue = Arguments.getArgument(this.context);
 
     return this.ensureDataType(argValue);
   }
@@ -250,5 +243,10 @@ export abstract class Argument<
    */
   get isSet(): boolean {
     return this._isSet;
+  }
+
+  setDefault(v: ResolveValueType<DT, true>) {
+    this.context.default = v;
+    this._value = this.getArgumentValue();
   }
 }
