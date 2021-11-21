@@ -192,11 +192,12 @@ export abstract class Argument<
       );
     }
 
-    if (this.context.require && this._value === undefined) {
+    if (this.context.require && this.value === undefined) {
       this.throwArgumentError("Argument must be specified.");
     }
 
-    this.value;
+    // @ts-expect-error
+    this.ensureDataType(this.value);
   }
 
   private getName() {
@@ -206,7 +207,7 @@ export abstract class Argument<
   private getArgumentValue() {
     const argValue = Arguments.getArgument(this.context);
 
-    return this.ensureDataType(argValue);
+    return argValue as ResolveValueType<DT, R>;
   }
 
   private throwArgumentError(message: string): never {

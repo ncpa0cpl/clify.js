@@ -176,17 +176,18 @@ var Argument = /** @class */ (function () {
         if (Argument.hasMultipleArgumentsWithKeywordOrFlag(this.context.keyword, this.context.flagChar)) {
             this.throwInternalError("Duplicate argument instances declared within a Command.");
         }
-        if (this.context.require && this._value === undefined) {
+        if (this.context.require && this.value === undefined) {
             this.throwArgumentError("Argument must be specified.");
         }
-        this.value;
+        // @ts-expect-error
+        this.ensureDataType(this.value);
     };
     Argument.prototype.getName = function () {
         return this.context.displayName || this.context.keyword;
     };
     Argument.prototype.getArgumentValue = function () {
         var argValue = argument_parser_1.Arguments.getArgument(this.context);
-        return this.ensureDataType(argValue);
+        return argValue;
     };
     Argument.prototype.throwArgumentError = function (message) {
         var name = this.getName();
