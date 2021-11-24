@@ -1,4 +1,5 @@
 import { Command } from "./command";
+import { defaultInitializer } from "./default-initializer";
 import type { CommandInitializeCallback } from "./types";
 
 export class SubCommand extends Command {
@@ -47,7 +48,10 @@ export class SubCommand extends Command {
    *   // CLI: node my-script.js command_1 command_2
    *   // Output: "Nested sub-command ran."
    */
-  addSubCommand(keyword: string, initialize: CommandInitializeCallback) {
+  addSubCommand(
+    keyword: string,
+    initialize: CommandInitializeCallback = defaultInitializer
+  ) {
     const subCommand = new SubCommand(keyword, initialize);
     this.addChildCommand(subCommand);
     return subCommand;

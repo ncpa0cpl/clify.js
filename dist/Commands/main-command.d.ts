@@ -3,7 +3,6 @@ import { SubCommand } from "./sub-command";
 import type { CommandInitializeCallback, MainCommandInitializeCallback } from "./types";
 export declare class MainCommand extends Command {
     protected static init(): MainCommand;
-    private isDefaultCommandSet;
     private constructor();
     protected start(): void;
     /**
@@ -26,5 +25,5 @@ export declare class MainCommand extends Command {
      *   // CLI: node my-script.js cmdName
      *   // Output: "Sub Command ran."
      */
-    addSubCommand(keyword: string, initialize: CommandInitializeCallback): SubCommand;
+    addSubCommand(keyword: string, initialize?: CommandInitializeCallback): SubCommand;
 }

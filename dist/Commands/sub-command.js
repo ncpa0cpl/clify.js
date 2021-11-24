@@ -17,6 +17,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubCommand = void 0;
 var command_1 = require("./command");
+var default_initializer_1 = require("./default-initializer");
 var SubCommand = /** @class */ (function (_super) {
     __extends(SubCommand, _super);
     function SubCommand(keyword, initialize) {
@@ -60,6 +61,7 @@ var SubCommand = /** @class */ (function (_super) {
      *   // Output: "Nested sub-command ran."
      */
     SubCommand.prototype.addSubCommand = function (keyword, initialize) {
+        if (initialize === void 0) { initialize = default_initializer_1.defaultInitializer; }
         var subCommand = new SubCommand(keyword, initialize);
         this.addChildCommand(subCommand);
         return subCommand;

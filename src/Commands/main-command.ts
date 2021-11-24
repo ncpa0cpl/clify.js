@@ -1,6 +1,7 @@
 import path from "path";
 import { Arguments } from "../Arguments/argument-parser";
 import { Command } from "./command";
+import { defaultInitializer } from "./default-initializer";
 import { SubCommand } from "./sub-command";
 import type {
   CommandInitializeCallback,
@@ -12,20 +13,19 @@ export class MainCommand extends Command {
     return new MainCommand();
   }
 
-  private isDefaultCommandSet = false;
-
   private constructor() {
     super();
     const scriptPath = process.argv[1];
 
     this.name = path.parse(scriptPath).name;
+
+    this.define(defaultInitializer);
   }
 
   protected start() {
     const subCommandsPath = Arguments.getSubCommandsPath();
 
-    if (subCommandsPath.length === 0 && this.isDefaultCommandSet)
-      return this.execute();
+    if (subCommandsPath.length === 0) return this.execute();
 
     let command: Command | undefined = this;
 
@@ -47,7 +47,6 @@ export class MainCommand extends Command {
    */
   setMainAction(initialize: MainCommandInitializeCallback) {
     this.define(initialize);
-    this.isDefaultCommandSet = true;
   }
 
   /**
@@ -65,7 +64,10 @@ export class MainCommand extends Command {
    *   // CLI: node my-script.js cmdName
    *   // Output: "Sub Command ran."
    */
-  addSubCommand(keyword: string, initialize: CommandInitializeCallback) {
+  addSubCommand(
+    keyword: string,
+    initialize: CommandInitializeCallback = defaultInitializer
+  ) {
     const subCommand = new SubCommand(keyword, initialize);
     this.addChildCommand(subCommand);
     return subCommand;

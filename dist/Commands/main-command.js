@@ -22,14 +22,15 @@ exports.MainCommand = void 0;
 var path_1 = __importDefault(require("path"));
 var argument_parser_1 = require("../Arguments/argument-parser");
 var command_1 = require("./command");
+var default_initializer_1 = require("./default-initializer");
 var sub_command_1 = require("./sub-command");
 var MainCommand = /** @class */ (function (_super) {
     __extends(MainCommand, _super);
     function MainCommand() {
         var _this = _super.call(this) || this;
-        _this.isDefaultCommandSet = false;
         var scriptPath = process.argv[1];
         _this.name = path_1.default.parse(scriptPath).name;
+        _this.define(default_initializer_1.defaultInitializer);
         return _this;
     }
     MainCommand.init = function () {
@@ -37,7 +38,7 @@ var MainCommand = /** @class */ (function (_super) {
     };
     MainCommand.prototype.start = function () {
         var subCommandsPath = argument_parser_1.Arguments.getSubCommandsPath();
-        if (subCommandsPath.length === 0 && this.isDefaultCommandSet)
+        if (subCommandsPath.length === 0)
             return this.execute();
         var command = this;
         while (true) {
@@ -57,7 +58,6 @@ var MainCommand = /** @class */ (function (_super) {
      */
     MainCommand.prototype.setMainAction = function (initialize) {
         this.define(initialize);
-        this.isDefaultCommandSet = true;
     };
     /**
      * Creates a sub-command for this script.
@@ -75,6 +75,7 @@ var MainCommand = /** @class */ (function (_super) {
      *   // Output: "Sub Command ran."
      */
     MainCommand.prototype.addSubCommand = function (keyword, initialize) {
+        if (initialize === void 0) { initialize = default_initializer_1.defaultInitializer; }
         var subCommand = new sub_command_1.SubCommand(keyword, initialize);
         this.addChildCommand(subCommand);
         return subCommand;

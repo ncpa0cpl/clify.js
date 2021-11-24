@@ -32,5 +32,5 @@ export declare class SubCommand extends Command {
      *   // CLI: node my-script.js command_1 command_2
      *   // Output: "Nested sub-command ran."
      */
-    addSubCommand(keyword: string, initialize: CommandInitializeCallback): SubCommand;
+    addSubCommand(keyword: string, initialize?: CommandInitializeCallback): SubCommand;
 }

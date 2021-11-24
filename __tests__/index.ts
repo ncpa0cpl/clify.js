@@ -9,15 +9,14 @@ const Arg1 = Argument.define({
 });
 
 clify.configure((main) => {
-  main.setMainAction(() => {
-    const a = new Arg1();
-
-    a.setDefault("abc");
-
-    return {
-      run() {
-        console.log(a.value);
-      },
-    };
-  });
+  main
+    .addSubCommand("foo")
+    .addSubCommand("bar")
+    .addSubCommand("baz", () => {
+      return {
+        run() {
+          console.log("this is baz");
+        },
+      };
+    });
 });
