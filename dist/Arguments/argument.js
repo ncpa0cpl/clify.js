@@ -166,7 +166,7 @@ var Argument = /** @class */ (function () {
     };
     Argument.prototype.validate = function () {
         var keywordRegex = /^--[a-zA-Z]+(-[a-zA-Z]+)*$/;
-        var flagRegex = /^-[a-zA-Z]{1}$/;
+        var flagRegex = /^-[a-zA-Z]+$/;
         if (!keywordRegex.test(this.context.keyword)) {
             this.throwInternalError("Incorrect Argument definition: invalid keyword (" + this.context.keyword + ")");
         }

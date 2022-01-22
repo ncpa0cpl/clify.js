@@ -167,7 +167,7 @@ export abstract class Argument<
 
   private validate() {
     const keywordRegex = /^--[a-zA-Z]+(-[a-zA-Z]+)*$/;
-    const flagRegex = /^-[a-zA-Z]{1}$/;
+    const flagRegex = /^-[a-zA-Z]+$/;
 
     if (!keywordRegex.test(this.context.keyword)) {
       this.throwInternalError(
