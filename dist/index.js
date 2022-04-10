@@ -4,12 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MainCommand = exports.Argument = exports.configure = void 0;
-var chalk_1 = __importDefault(require("chalk"));
-var argument_1 = require("./Arguments/argument");
+const chalk_1 = __importDefault(require("chalk"));
+const argument_1 = require("./Arguments/argument");
 Object.defineProperty(exports, "Argument", { enumerable: true, get: function () { return argument_1.Argument; } });
-var main_command_1 = require("./Commands/main-command");
+const main_command_1 = require("./Commands/main-command");
 Object.defineProperty(exports, "MainCommand", { enumerable: true, get: function () { return main_command_1.MainCommand; } });
-var mainCommand = main_command_1.MainCommand["init"]();
+const mainCommand = main_command_1.MainCommand["init"]();
 /**
  * Initiates and configures the script. This method takes one
  * argument, an initiation callback.
@@ -46,4 +46,4 @@ function configure(initialize) {
     }
 }
 exports.configure = configure;
-exports.default = { configure: configure, Argument: argument_1.Argument, MainCommand: main_command_1.MainCommand };
+exports.default = { configure, Argument: argument_1.Argument, MainCommand: main_command_1.MainCommand };

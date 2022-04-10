@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultInitializer = void 0;
 function defaultInitializer() {
-    var self = this;
+    const self = this;
     return {
-        run: function () {
+        run() {
             self["printHelpMessage"]();
         },
     };

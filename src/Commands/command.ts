@@ -35,11 +35,11 @@ export class Command {
   }
 
   protected runInitialize() {
-    Command.initHelpArg();
+    Argument["startCommandInitialization"]();
+    try {
+      Command.initHelpArg();
 
-    if (this.initialize && !this.implementation) {
-      Argument["startCommandInitialization"]();
-      try {
+      if (this.initialize && !this.implementation) {
         const data = this.initialize();
 
         this.setImplementation(data);
@@ -48,9 +48,9 @@ export class Command {
         if (data.shortDescription)
           this.shortDescription = data.shortDescription;
         if (data.displayName) this.name = data.displayName;
-      } finally {
-        Argument["endCommandInitialization"]();
       }
+    } finally {
+      Argument["endCommandInitialization"]();
     }
   }
 
