@@ -60,10 +60,10 @@ var Command = /** @class */ (function () {
         this.implementation = impl;
     };
     Command.prototype.runInitialize = function () {
+        Command.initHelpArg();
         if (this.initialize && !this.implementation) {
             argument_1.Argument["startCommandInitialization"]();
             try {
-                Command.initHelpArg();
                 var data = this.initialize();
                 this.setImplementation(data);
                 if (data.commandDescription)

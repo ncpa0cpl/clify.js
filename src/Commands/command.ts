@@ -35,12 +35,11 @@ export class Command {
   }
 
   protected runInitialize() {
+    Command.initHelpArg();
+
     if (this.initialize && !this.implementation) {
       Argument["startCommandInitialization"]();
-
       try {
-        Command.initHelpArg();
-
         const data = this.initialize();
 
         this.setImplementation(data);
