@@ -26,5 +26,6 @@
     "test": "jest --coverage",
     "build": "tsc -p ./tsconfig.build.json",
     "tsc": "tsc -p ./tsconfig.build.json --noEmit"
-  }
+  },
+  "packageManager": "yarn@1.22.19"
 }
