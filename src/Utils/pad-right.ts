@@ -10,14 +10,22 @@ export function padRight(
   if (options.targetWidth !== undefined)
     options.targetWidth = Math.max(0, options.targetWidth);
 
-  let paddingLength = options.paddingLength ?? 0;
+  const textLines = text.split("\n");
 
-  if (options.targetWidth !== undefined) {
-    if (options.targetWidth <= text.length)
-      return text.slice(0, options.targetWidth);
+  const paddedLines = textLines.map((line) => {
+    let paddingLength = options.paddingLength ?? 0;
 
-    paddingLength = options.targetWidth - text.length;
-  }
+    if (options.targetWidth !== undefined) {
+      if (options.targetWidth <= line.length)
+        return line.slice(0, options.targetWidth);
 
-  return `${text}${Array.from({ length: paddingLength }, () => " ").join("")}`;
+      paddingLength = options.targetWidth - line.length;
+    }
+
+    return `${line}${Array.from({ length: paddingLength }, () => " ").join(
+      ""
+    )}`;
+  });
+
+  return paddedLines.join("\n");
 }

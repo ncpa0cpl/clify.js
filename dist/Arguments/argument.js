@@ -33,14 +33,6 @@ const FLOATING_NUMBER_REGEX = /^[+-]?([0-9]*[.])?[0-9]+$/;
  *   });
  */
 class Argument {
-    constructor() {
-        if (!Argument.isCommandInitializing()) {
-            this.throwInternalError("Arguments must be initialized within the Command init callback.");
-        }
-        this.context = this.init();
-        this._value = this.getArgumentValue();
-        this._isSet = argument_parser_1.Arguments.isArgumentSet(this.context);
-    }
     static hasMultipleArgumentsWithKeywordOrFlag(keyword, flag) {
         return (Argument.initiatedArguments.filter((arg) => arg.context.keyword === keyword || arg.context.flagChar === flag).length > 1);
     }
@@ -82,6 +74,14 @@ class Argument {
             }
         }
         return Arg;
+    }
+    constructor() {
+        if (!Argument.isCommandInitializing()) {
+            this.throwInternalError("Arguments must be initialized within the Command init callback.");
+        }
+        this.context = this.init();
+        this._value = this.getArgumentValue();
+        this._isSet = argument_parser_1.Arguments.isArgumentSet(this.context);
     }
     ensureDataType(v) {
         // @ts-expect-error
@@ -174,6 +174,6 @@ class Argument {
         this._value = this.getArgumentValue();
     }
 }
-exports.Argument = Argument;
 Argument._isCommandInitializing = false;
 Argument.initiatedArguments = [];
+exports.Argument = Argument;

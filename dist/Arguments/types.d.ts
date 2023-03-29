@@ -1,18 +1,18 @@
-export declare type ArgumentKeyword = `--${string}`;
-export declare type ArgumentFlagChar = `-${string}`;
-export declare type ArgumentDataType = "string" | "number" | "boolean";
-export declare type TypeOfArg<DT extends ArgumentDataType | undefined> = TypeIsUndefined<DT> extends true ? string | number | boolean | undefined : {
+export type ArgumentKeyword = `--${string}`;
+export type ArgumentFlagChar = `-${string}`;
+export type ArgumentDataType = "string" | "number" | "boolean";
+export type TypeOfArg<DT extends ArgumentDataType | undefined> = TypeIsUndefined<DT> extends true ? string | number | boolean | undefined : {
     string: string;
     number: number;
     boolean: boolean;
 }[DT];
-export declare type TypeIsUndefined<T> = [Exclude<T, undefined>] extends [never] ? true : false;
-export declare type ReWrap<T> = T extends infer O ? {
+export type TypeIsUndefined<T> = [Exclude<T, undefined>] extends [never] ? true : false;
+export type ReWrap<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;
-export declare type Constructor<T> = new () => T;
-export declare type ResolveValueType<DT extends ArgumentDataType | undefined, R extends boolean> = R extends true ? TypeOfArg<DT> : TypeOfArg<DT> | undefined;
-export declare type ArgumentInitDataBase<R extends boolean> = {
+export type Constructor<T> = new () => T;
+export type ResolveValueType<DT extends ArgumentDataType | undefined, R extends boolean> = R extends true ? TypeOfArg<DT> : TypeOfArg<DT> | undefined;
+export type ArgumentInitDataBase<R extends boolean> = {
     /**
      * The keyword for this argument, must be prefixed with a
      * double Hyphen character. It can only consist of letters
@@ -63,7 +63,7 @@ export declare type ArgumentInitDataBase<R extends boolean> = {
      */
     category?: string;
 };
-export declare type ArgumentInitData<DT extends ArgumentDataType | undefined, R extends boolean> = ArgumentInitDataBase<R> & (TypeIsUndefined<DT> extends true ? {
+export type ArgumentInitData<DT extends ArgumentDataType | undefined, R extends boolean> = ArgumentInitDataBase<R> & (TypeIsUndefined<DT> extends true ? {
     /**
      * The default value that's provided if the argument is
      * not specified in the CLI.
@@ -90,4 +90,4 @@ export declare type ArgumentInitData<DT extends ArgumentDataType | undefined, R 
      */
     dataType?: DT;
 });
-export declare type ArgumentContext<DT extends ArgumentDataType | undefined, R extends boolean> = ReWrap<ArgumentInitData<DT, R>>;
+export type ArgumentContext<DT extends ArgumentDataType | undefined, R extends boolean> = ReWrap<ArgumentInitData<DT, R>>;
