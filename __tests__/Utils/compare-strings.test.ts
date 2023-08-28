@@ -30,17 +30,21 @@ describe("compareStrings", () => {
         expect(compareStrings({ reverse: true })(a, b)).toEqual(1);
         expect(compareStrings({ reverse: true })(b, a)).toEqual(-1);
 
-        expect(compareStrings({ reverse: true })("foo", "foo")).toEqual(0);
+        expect(
+          compareStrings({ reverse: true })("foo", "foo"),
+        ).toEqual(0);
       });
 
       it("when used with generator and with numeric option", () => {
         const a = "fooBarA";
         const b = "fooBarB";
 
-        expect(compareStrings({ numCompare: true })(a, b)).toEqual(-1);
-        expect(compareStrings({ numCompare: true })(b, a)).toEqual(1);
+        expect(compareStrings({ alphanum: true })(a, b)).toEqual(-1);
+        expect(compareStrings({ alphanum: true })(b, a)).toEqual(1);
 
-        expect(compareStrings({ numCompare: true })("foo", "foo")).toEqual(0);
+        expect(
+          compareStrings({ alphanum: true })("foo", "foo"),
+        ).toEqual(0);
       });
     });
 
@@ -72,23 +76,27 @@ describe("compareStrings", () => {
         expect(compareStrings({ reverse: true })(a, b)).toEqual(1);
         expect(compareStrings({ reverse: true })(b, a)).toEqual(-1);
 
-        expect(compareStrings({ reverse: true })("123", "123")).toEqual(0);
+        expect(
+          compareStrings({ reverse: true })("123", "123"),
+        ).toEqual(0);
       });
 
       it("when used with generator and with numeric option", () => {
         const a = "123";
         const b = "1";
 
-        expect(compareStrings({ numCompare: true })(a, b)).toEqual(1);
-        expect(compareStrings({ numCompare: true })(b, a)).toEqual(-1);
+        expect(compareStrings({ alphanum: true })(a, b)).toEqual(1);
+        expect(compareStrings({ alphanum: true })(b, a)).toEqual(-1);
 
-        expect(compareStrings({ numCompare: true })("123", "123")).toEqual(0);
+        expect(
+          compareStrings({ alphanum: true })("123", "123"),
+        ).toEqual(0);
       });
     });
 
     describe("with only letters and numbers", () => {
       it("for string formatted as <string><number>", () => {
-        const comparator = compareStrings({ numCompare: true });
+        const comparator = compareStrings({ alphanum: true });
 
         expect(comparator("foo123", "foo123")).toEqual(0);
 
@@ -99,7 +107,7 @@ describe("compareStrings", () => {
       });
 
       it("for string formatted as <number><string>", () => {
-        const comparator = compareStrings({ numCompare: true });
+        const comparator = compareStrings({ alphanum: true });
 
         expect(comparator("123foo", "123foo")).toEqual(0);
 
@@ -112,7 +120,7 @@ describe("compareStrings", () => {
   });
 
   it("should correctly compare differently formatted strings", () => {
-    const comparator = compareStrings({ numCompare: true });
+    const comparator = compareStrings({ alphanum: true });
 
     expect(comparator("", "")).toEqual(0);
 

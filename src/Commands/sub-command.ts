@@ -3,13 +3,12 @@ import { defaultInitializer } from "./default-initializer";
 import type { CommandInitializeCallback } from "./types";
 
 export class SubCommand extends Command {
-  protected keyword: string;
-
-  constructor(keyword: string, initialize: CommandInitializeCallback) {
+  constructor(
+    public readonly keyword: string,
+    initialize: CommandInitializeCallback,
+  ) {
     super();
     this.define(initialize);
-
-    this.keyword = keyword;
   }
 
   protected getPrintableList() {
@@ -31,7 +30,7 @@ export class SubCommand extends Command {
    *       run() {
    *         console.log("Sub-command 1 ran.");
    *       },
-   *     })
+   *     }),
    *   );
    *
    *   const command_2 = command_1.addSubCommand(
@@ -42,7 +41,7 @@ export class SubCommand extends Command {
    *           console.log("Nested sub-command ran.");
    *         },
    *       };
-   *     }
+   *     },
    *   );
    *
    *   // CLI: node my-script.js command_1 command_2
@@ -50,7 +49,7 @@ export class SubCommand extends Command {
    */
   addSubCommand(
     keyword: string,
-    initialize: CommandInitializeCallback = defaultInitializer
+    initialize: CommandInitializeCallback = defaultInitializer,
   ) {
     const subCommand = new SubCommand(keyword, initialize);
     this.addChildCommand(subCommand);

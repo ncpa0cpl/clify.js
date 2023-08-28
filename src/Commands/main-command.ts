@@ -1,4 +1,5 @@
 import path from "path";
+import { isArgName } from "../Arguments/Utils/is-arg-name";
 import { Arguments } from "../Arguments/argument-parser";
 import { Command } from "./command";
 import { defaultInitializer } from "./default-initializer";
@@ -8,12 +9,18 @@ import type {
   MainCommandInitializeCallback,
 } from "./types";
 
-export class MainCommand extends Command {
-  protected static init() {
-    return new MainCommand();
-  }
+export type MainCommandOptions = {
+  /**
+   * When enabled, script will ignore any invalid arguments without
+   * printing errors.
+   */
+  allowUnrecognizedArguments?: boolean;
+};
 
-  private constructor() {
+export class MainCommand extends Command {
+  private options: MainCommandOptions = {};
+
+  constructor() {
     super();
     const scriptPath = process.argv[1];
 
@@ -22,28 +29,46 @@ export class MainCommand extends Command {
     this.define(defaultInitializer);
   }
 
-  protected start() {
-    const subCommandsPath = Arguments.getSubCommandsPath();
+  private parseCliCommand() {
+    const args = process.argv.slice(2);
 
-    if (subCommandsPath.length === 0) return this.execute();
+    let command: Command = this;
 
-    let command: Command | undefined = this;
+    let i = 0;
+    for (; i < args.length; i++) {
+      const cmdName = args[i]!;
+      if (!command || isArgName(cmdName)) break;
 
-    while (true) {
-      if (subCommandsPath.length === 0) break;
-      if (!command) break;
+      const cmdReplacement = command.findChildCommand(cmdName);
 
-      const keyword = subCommandsPath.shift()!;
-
-      command = command["findChildCommand"](keyword);
+      if (cmdReplacement) {
+        command = cmdReplacement;
+      } else {
+        break;
+      }
     }
 
-    if (command) return command["execute"]();
+    const rest: string[] = [];
+
+    for (; i < args.length; i++) {
+      rest.push(args[i]!);
+    }
+
+    return [command, rest] as const;
   }
 
   /**
-   * Sets the default behavior for this script when started from
-   * the CLI without any sub-commands.
+   * @internal
+   */
+  public start() {
+    const [command, args] = this.parseCliCommand();
+
+    return command.execute(args);
+  }
+
+  /**
+   * Sets the default behavior for this script when started from the
+   * CLI without any sub-commands.
    */
   setMainAction(initialize: MainCommandInitializeCallback) {
     this.define(initialize);
@@ -66,10 +91,17 @@ export class MainCommand extends Command {
    */
   addSubCommand(
     keyword: string,
-    initialize: CommandInitializeCallback = defaultInitializer
+    initialize: CommandInitializeCallback = defaultInitializer,
   ) {
     const subCommand = new SubCommand(keyword, initialize);
     this.addChildCommand(subCommand);
     return subCommand;
+  }
+
+  setOptions(opt: MainCommandOptions) {
+    this.options = opt;
+    Arguments.allowUnrecognized(
+      this.options.allowUnrecognizedArguments ?? false,
+    );
   }
 }

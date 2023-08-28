@@ -1,12 +1,14 @@
-export type CommandImplementation = { run(): void };
+export type CommandImplementation = { run(): void | Promise<void> };
 
-export type CommandInitializeCallback = () => CommandImplementation & {
-  displayName?: string;
-  commandDescription?: string;
-  shortDescription?: string;
-};
+export type CommandInitializeCallback =
+  () => CommandImplementation & {
+    displayName?: string;
+    commandDescription?: string;
+    shortDescription?: string;
+  };
 
-export type MainCommandInitializeCallback = () => CommandImplementation & {
-  displayName?: string;
-  commandDescription?: string;
-};
+export type MainCommandInitializeCallback =
+  () => CommandImplementation & {
+    displayName?: string;
+    commandDescription?: string;
+  };

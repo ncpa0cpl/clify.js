@@ -6,7 +6,10 @@ function compare(a: string, b: string): -1 | 0 | 1 {
 
   const shorter = a.length > b.length ? b : a;
 
-  for (const index of Array.from({ length: shorter.length }, (_, i) => i)) {
+  for (const index of Array.from(
+    { length: shorter.length },
+    (_, i) => i,
+  )) {
     const charCodeA = a.charCodeAt(index);
     const charCodeB = b.charCodeAt(index);
 
@@ -23,9 +26,13 @@ function compareWithNumbers(a: string, b: string): -1 | 0 | 1 {
   const partsOfA = splitByAlphanumericTransitions(a);
   const partsOfB = splitByAlphanumericTransitions(b);
 
-  const shorter = partsOfA.length > partsOfB.length ? partsOfB : partsOfA;
+  const shorter =
+    partsOfA.length > partsOfB.length ? partsOfB : partsOfA;
 
-  for (const index of Array.from({ length: shorter.length }, (_, i) => i)) {
+  for (const index of Array.from(
+    { length: shorter.length },
+    (_, i) => i,
+  )) {
     const substringA = partsOfA[index];
     const substringB = partsOfB[index];
 
@@ -59,12 +66,12 @@ function compareWithNumbers(a: string, b: string): -1 | 0 | 1 {
 
 function compareStrings(strA: string, strB: string): -1 | 0 | 1;
 function compareStrings(options: {
-  numCompare?: boolean;
+  alphanum?: boolean;
   reverse?: boolean;
 }): (a: string, b: string) => -1 | 0 | 1;
 function compareStrings(
   arg_0: unknown,
-  arg_1?: unknown
+  arg_1?: unknown,
 ): -1 | 0 | 1 | ((a: string, b: string) => -1 | 0 | 1) {
   if (typeof arg_0 === "string" && typeof arg_1 === "string") {
     return compare(arg_0, arg_1);
@@ -72,7 +79,7 @@ function compareStrings(
 
   if (typeof arg_0 === "object" && arg_0 !== null) {
     // @ts-expect-error
-    const numCompare = arg_0["numCompare"] ?? false;
+    const numCompare = arg_0["alphanum"] ?? false;
     // @ts-expect-error
     const reverse = arg_0["reverse"] ?? false;
 

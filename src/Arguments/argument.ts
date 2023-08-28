@@ -1,16 +1,34 @@
-import chalk from "chalk";
+import {
+  AnyDataType,
+  assertDataType,
+  Type,
+  ValidationError,
+} from "dilswer";
+import { SimpleDataType } from "dilswer/dist/types/data-types/data-types";
+import { html } from "termx-markup";
+import { Out } from "../output";
 import { compareStrings } from "../Utils/compare-strings";
+import { ClifyError, InitError } from "../Utils/errors";
 import { Arguments } from "./argument-parser";
 import type {
   ArgumentContext,
   ArgumentDataType,
   ArgumentInitData,
-  Constructor,
   ResolveValueType,
   ReWrap,
 } from "./types";
 
-const FLOATING_NUMBER_REGEX = /^[+-]?([0-9]*[.])?[0-9]+$/;
+const NUMBER_REGEX =
+  /^([+-]?([0-9]*[.])?[0-9]+)|(\d*(\.\d*)?e[-+]\d+)$/;
+
+const alphanumComparator = compareStrings({ alphanum: true });
+
+const isBooleanType = (context: ArgumentContext) => {
+  return (
+    context.dataType.kind === "simple" &&
+    context.dataType.simpleType === "boolean"
+  );
+};
 
 /**
  * Used to define and access the script or sub-command arguments.
@@ -36,209 +54,307 @@ const FLOATING_NUMBER_REGEX = /^[+-]?([0-9]*[.])?[0-9]+$/;
  *     };
  *   });
  */
-export abstract class Argument<
-  DT extends ArgumentDataType | undefined,
-  R extends boolean
+export class Argument<
+  DT extends ArgumentDataType = ArgumentDataType,
+  R extends boolean = boolean,
 > {
+  private static instanceRef: Argument<any, any>;
   private static _isCommandInitializing = false;
-  private static initiatedArguments: Argument<any, any>[] = [];
 
-  private static hasMultipleArgumentsWithKeywordOrFlag(
-    keyword: string,
-    flag: string
-  ) {
-    return (
-      Argument.initiatedArguments.filter(
-        (arg) =>
-          arg.context.keyword === keyword || arg.context.flagChar === flag
-      ).length > 1
-    );
+  private static presentDataType(dt: AnyDataType | string): string {
+    if (typeof dt === "string") return dt;
+
+    if (dt.kind === "simple") {
+      return dt.simpleType;
+    }
+
+    if (dt.kind === "literal") {
+      return `${JSON.stringify(dt.literal)} (${typeof dt.literal})`;
+    }
+
+    if (dt.kind === "stringMatching") {
+      return (
+        "string matching regular expression: " + dt.pattern.toString()
+      );
+    }
+
+    if (dt.kind === "enumMember") {
+      return `${JSON.stringify(
+        dt.enumMember,
+      )} (${typeof dt.enumMember})`;
+    }
+
+    if (dt.kind === "enumUnion") {
+      return `one of: ${Object.entries(dt.enumInstance)
+        .filter(([key]) => Number.isNaN(Number(key)))
+        .map(([, v]) => `${JSON.stringify(v)} (${typeof v})`)
+        .join(" | ")}`;
+    }
+
+    if (dt.kind === "array") {
+      return `list of: ${dt.arrayOf.map(this.presentDataType)}`;
+    }
+
+    if (dt.kind === "union") {
+      return `one of: ${dt.oneOf
+        .map(this.presentDataType)
+        .join(" | ")}`;
+    }
+
+    return "<unknown>";
   }
 
-  protected static startCommandInitialization() {
+  /**
+   * @internal
+   */
+  static startCommandInitialization() {
     Argument._isCommandInitializing = true;
   }
 
-  protected static endCommandInitialization() {
+  /**
+   * @internal
+   */
+  static endCommandInitialization() {
     Argument._isCommandInitializing = false;
   }
 
-  protected static isCommandInitializing() {
+  /**
+   * @internal
+   */
+  static isCommandInitializing() {
     return Argument._isCommandInitializing;
   }
 
-  protected static getArgumentsInfo() {
-    return Argument.initiatedArguments
+  /**
+   * @internal
+   */
+  static getArgumentsInfo() {
+    return Arguments.getRegisteredArguments()
+      .filter(
+        (arg) =>
+          arg.context.arg != null || arg.context.fullArg != null,
+      )
       .sort((arg_0, arg_1) =>
-        compareStrings({ numCompare: true })(
-          arg_0.context.flagChar,
-          arg_1.context.flagChar
-        )
+        alphanumComparator(
+          arg_0.context.arg ?? arg_0.context.fullArg!,
+          arg_1.context.arg ?? arg_1.context.fullArg!,
+        ),
       )
       .map((arg) => ({
-        flagChar: arg.context.flagChar,
-        keyword: arg.context.keyword,
+        arg: arg.context.arg,
+        fullArg: arg.context.fullArg,
         description: arg.context.description ?? "",
         category: arg.context.category,
       }));
   }
 
-  protected static validateArguments() {
-    for (const arg of Argument.initiatedArguments) {
-      arg.validate();
+  static setArgumentValue(
+    arg: Argument,
+    unparsed: string | undefined,
+    value: any,
+  ) {
+    arg._unparsed = unparsed;
+    arg._value = value;
+    arg._isSet = true;
+
+    if (typeof value === "boolean" && arg.context.boolInvert) {
+      arg._value = !value;
     }
+  }
+
+  static isExpectingParameter(
+    arg: Argument<ArgumentDataType, any>,
+  ): boolean {
+    return !(
+      arg.context.dataType.kind === "simple" &&
+      arg.context.dataType.simpleType === "boolean"
+    );
+  }
+
+  static getExpectedType(argument: Argument): ArgumentDataType {
+    return argument.context.dataType;
+  }
+
+  static validateArgument(argument: Argument) {
+    argument.validate();
   }
 
   static define<
-    DT extends ArgumentDataType | undefined = undefined,
-    R extends boolean = false
-  >(initData: ArgumentInitData<DT, R>): Constructor<Argument<DT, R>> {
+    DT extends ArgumentDataType = SimpleDataType<"unknown">,
+    R extends boolean = false,
+  >(initData: ArgumentInitData<DT, R>): typeof Argument<DT, R> {
+    initData.require ??= false as R;
+
+    // @ts-expect-error
     class Arg extends Argument<DT, R> {
       constructor() {
         super();
-
-        Argument.initiatedArguments.push(this);
+        Arguments.registerArgument(this);
+        Arg.instanceRef = this;
       }
 
-      init() {
-        return initData as ReWrap<ArgumentInitData<DT, R>>;
+      getInitialContext() {
+        return initData as any;
+      }
+
+      static access(): Argument<DT, R> {
+        if (!Arg.instanceRef) {
+          Out.err(html`
+            <span color="lightRed">
+              Internal Error: accessing uninitialized argument.
+            </span>
+          `);
+          throw new ClifyError("Accessing uninitialized argument.");
+        }
+
+        return Arg.instanceRef;
       }
     }
 
-    return Arg as any as Constructor<Argument<DT, R>>;
+    return Arg as any;
   }
 
   private context: ArgumentContext<DT, R>;
-  private _value: ResolveValueType<DT, R>;
-  private _isSet: boolean;
+  private _value?: ResolveValueType<DT, R>;
+  private _isSet: boolean = false;
+  private _unparsed?: string;
 
-  private constructor() {
+  constructor() {
     if (!Argument.isCommandInitializing()) {
       this.throwInternalError(
-        "Arguments must be initialized within the Command init callback."
+        "Arguments must be initialized within the Command init callback.",
       );
     }
 
-    this.context = this.init();
-    this._value = this.getArgumentValue();
-    this._isSet = Arguments.isArgumentSet(this.context);
-  }
+    this.context = this.getInitialContext();
 
-  private ensureDataType(
-    v: string | number | boolean | undefined
-  ): ResolveValueType<DT, R> {
-    // @ts-expect-error
-    if (!this.context.require && v === undefined) return v;
-
-    switch (this.context.dataType) {
-      case "boolean":
-        // @ts-expect-error
-        if (typeof v === "boolean") return v;
-        // @ts-expect-error
-        if (v === "0" || v === 0) return false;
-        // @ts-expect-error
-        if (v === "1" || v === 1) return true;
-        this.throwArgumentError(
-          'Argument value is not of expected type (boolean). Try one of the following: "true", "false", 0 or 1'
-        );
-        break;
-      case "number":
-        // @ts-expect-error
-        if (typeof v === "number") return v;
-        if (typeof v === "string" && FLOATING_NUMBER_REGEX.test(v))
-          // @ts-expect-error
-          return Number(v);
-        this.throwArgumentError(
-          "Argument value is not of expected type (number). Try putting in a number value to this argument like: 0, 1, 123, 1.2 or .678"
-        );
-        break;
-      case "string":
-        // @ts-expect-error
-        if (typeof v === "string") return v;
-        this.throwArgumentError(
-          "Argument value is not of expected type (string)."
-        );
-        break;
-      default:
-        // @ts-expect-error
-        return v;
+    if (isBooleanType(this.context)) {
+      // @ts-expect-error
+      this.context.default = this.context.boolInvert ? true : false;
     }
   }
 
   private validate() {
-    const keywordRegex = /^--[a-zA-Z]+(-[a-zA-Z]+)*$/;
-    const flagRegex = /^-[a-zA-Z]+$/;
+    const keywordRegex = /^--[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$/;
+    const flagRegex = /^-[a-zA-Z0-9]{1}$/;
 
-    if (!keywordRegex.test(this.context.keyword)) {
+    if (
+      this.context.fullArg != null &&
+      !keywordRegex.test(this.context.fullArg)
+    ) {
       this.throwInternalError(
-        `Incorrect Argument definition: invalid keyword (${this.context.keyword})`
-      );
-    }
-
-    if (!flagRegex.test(this.context.flagChar)) {
-      this.throwInternalError(
-        `Incorrect Argument definition: invalid flag character (${this.context.flagChar})`
+        `Incorrect Argument definition: invalid keyword (${this.context.fullArg})`,
       );
     }
 
     if (
-      Argument.hasMultipleArgumentsWithKeywordOrFlag(
-        this.context.keyword,
-        this.context.flagChar
-      )
+      this.context.arg != null &&
+      !flagRegex.test(this.context.arg)
     ) {
       this.throwInternalError(
-        "Duplicate argument instances declared within a Command."
+        `Incorrect Argument definition: invalid flag character (${this.context.arg})`,
       );
     }
 
-    if (this.context.require && this.value === undefined) {
-      this.throwArgumentError("Argument must be specified.");
+    if (this.context.require === false && this._isSet === false) {
+      return;
     }
 
-    // @ts-expect-error
-    this._value = this.ensureDataType(this.value);
-  }
+    if (!Argument.isExpectingParameter(this)) {
+      return;
+    }
 
-  private getName() {
-    return this.context.displayName || this.context.keyword;
-  }
+    if (
+      this.context.require === true &&
+      this._isSet === false &&
+      this.context.default === undefined
+    ) {
+      this.throwArgumentError(`Argument not specified.`);
+    }
 
-  private getArgumentValue() {
-    const argValue = Arguments.getArgument(this.context);
-
-    return argValue as ResolveValueType<DT, R>;
+    try {
+      assertDataType(
+        this.context.dataType ?? Type.Unknown,
+        this._value,
+      );
+    } catch (err) {
+      if (ValidationError.isValidationError(err)) {
+        this.throwArgumentError(
+          `Expected ${Argument.presentDataType(
+            err.expectedValueType,
+          )}, but received: "${String(this._unparsed)}"`,
+        );
+      }
+    }
   }
 
   private throwArgumentError(message: string): never {
     const name = this.getName();
 
-    throw new Error(
-      `${chalk.red("Argument Error")} [${chalk.yellow(name)}]: ${message}`
-    );
+    Out.err(html`
+      <span color="red">
+        Argument Error
+        <span color="white">[</span><span color="yellow">${name}</span
+        ><span color="white">]</span>
+      </span>
+      <line>
+        <pad size="2" color="lightRed">${message}</pad>
+      </line>
+    `);
+
+    throw new InitError();
   }
 
   private throwInternalError(message: string): never {
     const name = this.getName();
 
-    throw new Error(
-      `${chalk.red("Argument Error")} [${chalk.yellow(name)}]: ${message}`
-    );
+    Out.err(html`
+      <span color="red">
+        Internal Argument Error
+        <span color="yellow">[${name}]</span>
+      </span>
+      <line>
+        <pad size="2" color="lightRed">${message}</pad>
+      </line>
+    `);
+
+    throw new InitError();
   }
 
-  protected abstract init(): ReWrap<ArgumentInitData<DT, R>>;
+  protected getInitialContext(): ReWrap<ArgumentInitData<DT, R>> {
+    throw new ClifyError("Unreachable");
+  }
+
+  public static access<
+    DT extends ArgumentDataType,
+    R extends boolean,
+  >(this: typeof Argument<DT, R>): Argument<DT, R> {
+    throw new ClifyError("Unreachable");
+  }
+
+  public getName(): string | undefined {
+    return this.context.fullArg ?? this.context.arg;
+  }
+
+  get fullArg(): string | undefined {
+    return this.context.fullArg;
+  }
+
+  get arg(): string | undefined {
+    return this.context.arg;
+  }
 
   /**
-   * Value of the argument, this is the value specified in the
-   * CLI command arguments or the default value of the Argument.
+   * Value of the argument, this is the value specified in the CLI
+   * command arguments or the default value of the Argument.
    */
   get value(): ResolveValueType<DT, R> {
-    return this._value;
+    return (this._value ?? this.context.default) as any;
   }
 
   /**
-   * Defines if the Argument has been set as a part of the CLI
-   * command argument.
+   * Defines if the Argument has been set as a part of the CLI command
+   * argument.
    *
    * Setting the Argument default value does not affect this property.
    */
@@ -246,8 +362,8 @@ export abstract class Argument<
     return this._isSet;
   }
 
-  setDefault(v: ResolveValueType<DT, true>) {
+  setDefault(v: ResolveValueType<DT, true>): Argument<DT, true> {
     this.context.default = v;
-    this._value = this.getArgumentValue();
+    return this as any;
   }
 }

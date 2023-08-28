@@ -1,30 +1,39 @@
-import chalk from "chalk";
+import { Type } from "dilswer";
+import { html } from "termx-markup";
 import { Argument } from "../Arguments/argument";
+import { Arguments } from "../Arguments/argument-parser";
+import { InitError } from "../Utils/errors";
 import { groupByCategory } from "../Utils/group-by-category";
 import { printLists } from "../Utils/print-lists";
+import { Out } from "../output";
+import { StdInput } from "../stdinput";
 import type { SubCommand } from "./sub-command";
-import type { CommandImplementation, CommandInitializeCallback } from "./types";
+import type {
+  CommandImplementation,
+  CommandInitializeCallback,
+} from "./types";
 
-const HelpFlag = Argument.define({
-  flagChar: "-h",
-  keyword: "--help",
-  dataType: "boolean",
-  displayName: "help",
+const HelpArg = Argument.define({
+  arg: "-h",
+  fullArg: "--help",
+  dataType: Type.Boolean,
   description: "Show this help message.",
 });
 
 export class Command {
-  private static helpArgument?: Argument<"boolean", false>;
+  private static helpArgument: Argument<typeof Type.Boolean, false>;
 
   private static initHelpArg() {
     if (!Command.helpArgument) {
-      Command.helpArgument = new HelpFlag();
+      Command.helpArgument = new HelpArg();
     }
   }
 
   private childCommands: SubCommand[] = [];
-  private implementation: CommandImplementation | undefined = undefined;
-  private initialize: CommandInitializeCallback | undefined = undefined;
+  private implementation: CommandImplementation | undefined =
+    undefined;
+  private initialize: CommandInitializeCallback | undefined =
+    undefined;
 
   protected description = "";
   protected shortDescription = "";
@@ -34,8 +43,11 @@ export class Command {
     this.implementation = impl;
   }
 
-  protected runInitialize() {
-    Argument["startCommandInitialization"]();
+  /**
+   * @internal
+   */
+  public runInitialize() {
+    Argument.startCommandInitialization();
     try {
       Command.initHelpArg();
 
@@ -44,87 +56,142 @@ export class Command {
 
         this.setImplementation(data);
 
-        if (data.commandDescription) this.description = data.commandDescription;
+        if (data.commandDescription)
+          this.description = data.commandDescription;
         if (data.shortDescription)
           this.shortDescription = data.shortDescription;
         if (data.displayName) this.name = data.displayName;
       }
     } finally {
-      Argument["endCommandInitialization"]();
+      Argument.endCommandInitialization();
     }
   }
 
-  protected define(initialize: CommandInitializeCallback) {
+  /**
+   * @internal
+   */
+  public define(initialize: CommandInitializeCallback) {
     this.initialize = initialize;
   }
 
-  protected execute() {
+  /**
+   * @internal
+   */
+  public async execute(args: string[]) {
     this.runInitialize();
+    await Arguments.parseArguments(args);
 
-    if (Command.helpArgument?.isSet && Command.helpArgument.value === true)
+    if (Command.helpArgument.value === true)
       return this.printHelpMessage();
 
-    Argument["validateArguments"]();
-    if (this.implementation) return this.implementation.run();
+    if (!Arguments.hasFileInputArg() && StdInput.instance) {
+      await StdInput.load(StdInput.instance);
+    }
+
+    Arguments.validateAll();
+
+    if (this.implementation) {
+      return this.implementation.run();
+    }
   }
 
-  protected addChildCommand(c: SubCommand) {
-    if (this.findChildCommand(c["keyword"])) {
-      throw new Error(
-        `${chalk.red(
-          "Internal Error:"
-        )} There cannot be multiple commands with the same keyword.`
-      );
+  /**
+   * @internal
+   */
+  public addChildCommand(c: SubCommand) {
+    if (this.findChildCommand(c.keyword)) {
+      Out.err(html`
+        <span color="lightRed">Internal Error</span>
+        <line>
+          Command with the name "${c.keyword}" already exists.
+        </line>
+      `);
+      throw new InitError();
     }
 
     this.childCommands.push(c);
   }
 
-  protected findChildCommand(keyword: string) {
-    return this.childCommands.find((c) => c["keyword"] === keyword);
+  /**
+   * @internal
+   */
+  public findChildCommand(keyword: string) {
+    return this.childCommands.find((c) => c.keyword === keyword);
   }
 
   protected getName() {
     return this.name;
   }
 
-  protected printHelpMessage() {
-    const argsInfo = groupByCategory(Argument["getArgumentsInfo"]());
+  /**
+   * @internal
+   */
+  public printHelpMessage() {
+    const argsInfo = groupByCategory(Argument.getArgumentsInfo());
     const commandName = this.getName();
 
-    if (this.description) {
-      printLists([[`${commandName}:`, this.description]]);
-    } else if (this.shortDescription) {
-      printLists([[`${commandName}:`, this.shortDescription]]);
+    if (this.childCommands.length > 0) {
+      if (Arguments.hasFileInputArg()) {
+        Out.out(html`
+          <span>${commandName} [COMMAND] [OPTION]... [FILE]</span>
+        `);
+      } else {
+        Out.out(html`
+          <span>${commandName} [COMMAND] [OPTION]...</span>
+        `);
+      }
     } else {
-      printLists([[`${commandName}:`]]);
+      if (Arguments.hasFileInputArg()) {
+        Out.out(html`
+          <span>${commandName} [OPTION]... [FILE]</span>
+        `);
+      } else {
+        Out.out(html` <span>${commandName} [OPTION]...</span> `);
+      }
+    }
+
+    Out.out("");
+
+    if (this.description) {
+      Out.out(html` <span>${this.description}</span> `);
+    } else if (this.shortDescription) {
+      Out.out(html` <span>${this.shortDescription}</span> `);
     }
 
     if (this.childCommands.length > 0) {
-      console.log("\nCommands:");
+      Out.out(html` <span bold>Commands:</span> `);
       printLists(
-        this.childCommands.map((child) => child["getPrintableList"]()),
-        true
+        this.childCommands.map((child) =>
+          child["getPrintableList"](),
+        ),
+        true,
       );
+      Out.out(html` <span></span> `);
     }
 
-    console.log("\nArguments:");
+    Out.out(html` <span bold>Arguments:</span> `);
 
     for (const [category, args] of argsInfo) {
-      if (category.length > 0) console.log(`\n${category}:`);
+      if (category.length > 0) {
+        Out.out(html` <span bold>${category}:</span> `);
+      }
 
       printLists(
-        args.map((arg) => [arg.flagChar, arg.keyword, arg.description]),
-        true
+        args.map((arg) => [
+          arg.arg ?? "",
+          arg.fullArg ?? "",
+          arg.description,
+        ]),
+        true,
       );
     }
   }
 
   /**
-   * Sets the description of this command that will be displayed
-   * when looking up the `--help` for this command.
+   * Sets the description of this command that will be displayed when
+   * looking up the `--help` for this command.
    */
-  setDescription(description: string) {
+  public setDescription(description: string) {
     this.description = description;
   }
 
@@ -132,7 +199,7 @@ export class Command {
    * Sets the name that will be displayed for this Command in the
    * command line interface.
    */
-  setDisplayName(name: string) {
+  public setDisplayName(name: string) {
     this.name = name;
   }
 }

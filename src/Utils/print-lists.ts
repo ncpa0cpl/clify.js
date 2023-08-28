@@ -1,3 +1,5 @@
+import { html } from "termx-markup";
+import { Out } from "../output";
 import { countChar } from "./count-char";
 import { padBottom } from "./pad-bottom";
 import { padLeft } from "./pad-left";
@@ -7,7 +9,7 @@ import { stringListLength } from "./string-list-length";
 
 export function removeColumnsNotFittingTheScreen(
   cells: string[],
-  screenWidth: number
+  screenWidth: number,
 ): string[] {
   cells = [...cells];
   const slicedCells = cells.slice(0, -1);
@@ -17,37 +19,44 @@ export function removeColumnsNotFittingTheScreen(
   return cells;
 }
 
-export function printLists(linesList: string[][], addLeftPadding = false) {
+export function printLists(
+  linesList: string[][],
+  addLeftPadding = false,
+) {
   const wholeLeftPadding = addLeftPadding ? 2 : 0;
 
   const columns = linesList.reduce(
     (colCount, line) => Math.max(colCount, line.length),
-    0
+    0,
   );
 
-  const columnsWidth = Array.from({ length: columns }).map((_, columnIndex) => {
-    const width = linesList.reduce((w, line) => {
-      const cell = line[columnIndex];
-      if (cell) {
-        const cellLines = cell.split("\n");
+  const columnsWidth = Array.from({ length: columns }).map(
+    (_, columnIndex) => {
+      const width = linesList.reduce((w, line) => {
+        const cell = line[columnIndex];
+        if (cell) {
+          const cellLines = cell.split("\n");
 
-        const cellLinesWidths = cellLines.map((line) => line.length);
+          const cellLinesWidths = cellLines.map(
+            (line) => line.length,
+          );
 
-        return Math.max(w, ...cellLinesWidths);
-      }
+          return Math.max(w, ...cellLinesWidths);
+        }
 
-      return w;
-    }, 0);
+        return w;
+      }, 0);
 
-    return width + 2;
-  });
+      return width + 2;
+    },
+  );
 
   const screenWidth = process.stdout.columns;
 
   for (const line of linesList) {
     const lineHeight = Math.max(
       1,
-      ...line.map((cell) => countChar(cell, "\n") + 1)
+      ...line.map((cell) => countChar(cell, "\n") + 1),
     );
 
     const columns = line.map((cellText, columnIndex, arr) => {
@@ -71,31 +80,37 @@ export function printLists(linesList: string[][], addLeftPadding = false) {
     }, []);
 
     for (const cells of rows) {
-      const slicedCells = removeColumnsNotFittingTheScreen(cells, screenWidth);
+      const slicedCells = removeColumnsNotFittingTheScreen(
+        cells,
+        screenWidth,
+      );
 
       if (slicedCells.length === 0) return;
 
       if (stringListLength(slicedCells) > screenWidth) {
         const lastCell = slicedCells.splice(-1)[0];
 
-        const padLeftWidth = stringListLength(slicedCells) + wholeLeftPadding;
+        const padLeftWidth =
+          stringListLength(slicedCells) + wholeLeftPadding;
         const lastCellWidth = screenWidth - padLeftWidth;
 
         const [firstChunk, ...chunks] = splitToNLengthChunks(
           lastCell,
-          lastCellWidth
+          lastCellWidth,
         );
 
         slicedCells.push(firstChunk);
 
-        console.log(slicedCells.join(""));
+        Out.out(html` <span>${slicedCells.join("")}</span> `);
 
         for (const chunk of chunks) {
-          const text = padLeft(chunk, { paddingLength: padLeftWidth });
-          console.log(text);
+          const text = padLeft(chunk, {
+            paddingLength: padLeftWidth,
+          });
+          Out.out(html` <span>${text}</span> `);
         }
       } else {
-        console.log(slicedCells.join(""));
+        Out.out(html` <span>${slicedCells.join("")}</span> `);
       }
     }
   }

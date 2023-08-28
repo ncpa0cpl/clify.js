@@ -1,3 +1,11 @@
 export function isArgName(value: string): value is `-${string}` {
-  return value[0] === "-";
+  if (value[0] !== "-") {
+    return false;
+  }
+
+  if (value[1] === "-") {
+    return true;
+  }
+
+  return value.length < 3;
 }

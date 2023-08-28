@@ -1,0 +1,13 @@
+// src/Commands/default-initializer.ts
+function defaultInitializer() {
+  const self = this;
+  return {
+    run() {
+      self.printHelpMessage();
+    }
+  };
+}
+export {
+  defaultInitializer
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiLi4vLi4vLi4vc3JjL0NvbW1hbmRzL2RlZmF1bHQtaW5pdGlhbGl6ZXIudHMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImltcG9ydCB0eXBlIHsgQ29tbWFuZCB9IGZyb20gXCIuL2NvbW1hbmRcIjtcblxuZXhwb3J0IGZ1bmN0aW9uIGRlZmF1bHRJbml0aWFsaXplcih0aGlzOiBDb21tYW5kKSB7XG4gIGNvbnN0IHNlbGYgPSB0aGlzO1xuXG4gIHJldHVybiB7XG4gICAgcnVuKCkge1xuICAgICAgc2VsZi5wcmludEhlbHBNZXNzYWdlKCk7XG4gICAgfSxcbiAgfTtcbn1cbiJdLAogICJtYXBwaW5ncyI6ICI7QUFFTyxTQUFTLHFCQUFrQztBQUNoRCxRQUFNLE9BQU87QUFFYixTQUFPO0FBQUEsSUFDTCxNQUFNO0FBQ0osV0FBSyxpQkFBaUI7QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K

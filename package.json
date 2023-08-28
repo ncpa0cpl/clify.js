@@ -4,27 +4,26 @@
   "license": "MIT",
   "version": "1.0.3",
   "devDependencies": {
-    "@types/chalk": "^2.2.0",
-    "@types/jest": "^27.0.2",
-    "@types/node": "^16.11.7",
-    "@typescript-eslint/eslint-plugin": "^5.3.1",
-    "@typescript-eslint/parser": "^5.3.1",
-    "eslint": "^8.2.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "jest": "^27.3.1",
-    "prettier": "^2.4.1",
-    "prettier-plugin-jsdoc": "^0.3.30",
-    "ts-jest": "^27.0.7",
-    "ts-node": "^10.4.0",
-    "typescript": "^5.0.2"
+    "@ncpa0cpl/nodepack": "^2.3.0",
+    "@swc-node/register": "^1.6.7",
+    "@swc/core": "^1.3.80",
+    "@swc/jest": "^0.2.29",
+    "@types/jest": "^29.5.4",
+    "@types/node": "~18.11.9",
+    "esbuild": "^0.19.2",
+    "jest": "~29.6.4",
+    "prettier": "~3.0.2",
+    "prettier-plugin-jsdoc": "~1.0.1",
+    "strip-ansi": "^7.1.0",
+    "typescript": "latest"
   },
   "dependencies": {
-    "chalk": "^4.1.2"
+    "dilswer": "^2.1.1",
+    "termx-markup": "~2.0.1"
   },
   "scripts": {
     "test": "jest --coverage",
-    "build": "tsc -p ./tsconfig.build.json",
+    "build": "node ./scripts/build.mjs",
     "tsc": "tsc -p ./tsconfig.build.json --noEmit"
   }
 }

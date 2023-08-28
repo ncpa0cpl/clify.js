@@ -5,7 +5,7 @@ export function defaultInitializer(this: Command) {
 
   return {
     run() {
-      self["printHelpMessage"]();
+      self.printHelpMessage();
     },
   };
 }

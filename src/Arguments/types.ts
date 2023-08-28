@@ -1,6 +1,32 @@
-export type ArgumentKeyword = `--${string}`;
-export type ArgumentFlagChar = `-${string}`;
-export type ArgumentDataType = "string" | "number" | "boolean";
+import { ArrayOf, GetDataType, OneOf, Type } from "dilswer";
+import {
+  Enum,
+  EnumMember,
+  Literal,
+  StringMatching,
+  Tuple,
+} from "dilswer/dist/types/data-types/data-types";
+
+type BaseDataTypes =
+  | typeof Type.Unknown
+  | typeof Type.String
+  | typeof Type.StringInt
+  | typeof Type.StringNumeral
+  | typeof Type.Number
+  | typeof Type.Int
+  | typeof Type.Boolean
+  | Literal<any>
+  | Enum<any>
+  | EnumMember<any>
+  | StringMatching<any>;
+
+export type FullArgumentName = `--${string}`;
+export type ShortArgumentName = `-${string}`;
+export type ArgumentDataType =
+  | BaseDataTypes
+  | OneOf<BaseDataTypes[]>
+  | ArrayOf<BaseDataTypes[]>
+  | Tuple<BaseDataTypes[]>;
 
 export type TypeOfArg<DT extends ArgumentDataType | undefined> =
   TypeIsUndefined<DT> extends true
@@ -12,57 +38,59 @@ export type TypeOfArg<DT extends ArgumentDataType | undefined> =
         boolean: boolean;
       }[DT];
 
-export type TypeIsUndefined<T> = [Exclude<T, undefined>] extends [never]
+export type TypeIsUndefined<T> = [Exclude<T, undefined>] extends [
+  never,
+]
   ? true
   : false;
 
-export type ReWrap<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+export type ReWrap<T> = T extends infer O
+  ? { [K in keyof O]: O[K] }
+  : never;
 
 export type Constructor<T> = new () => T;
 
 export type ResolveValueType<
-  DT extends ArgumentDataType | undefined,
-  R extends boolean
-> = R extends true ? TypeOfArg<DT> : TypeOfArg<DT> | undefined;
+  DT extends ArgumentDataType,
+  R extends boolean,
+> = R extends true ? GetDataType<DT> : GetDataType<DT> | undefined;
 
-export type ArgumentInitDataBase<R extends boolean> = {
+export type ArgumentInitData<
+  DT extends ArgumentDataType,
+  R extends boolean,
+> = {
   /**
-   * The keyword for this argument, must be prefixed with a
-   * double Hyphen character. It can only consist of letters
-   * possibly separated with a single hyphen.
+   * The keyword for this argument, must be prefixed with a double
+   * Hyphen character. It can only consist of letters possibly
+   * separated with a single hyphen.
    *
    * @example
    *   const arg = {
-   *     keyword: "--input",
+   *     fullArg: "--input",
    *   };
    *   // or
    *   const arg = {
-   *     keyword: "--output-file",
+   *     fullArg: "--output-file",
    *   };
    */
-  keyword: ArgumentKeyword;
+  fullArg?: FullArgumentName;
   /**
-   * A single character flag, must be prefixed with exactly one Hyphen.
+   * A single character flag, must be prefixed with exactly one
+   * Hyphen.
    *
    * @example
    *   const arg = {
-   *     flagChar: "-i",
+   *     arg: "-i",
    *   };
    *   // or
    *   const arg = {
-   *     flagChar: "-C",
+   *     arg: "-C",
    *   };
    */
-  flagChar: ArgumentFlagChar;
+  arg?: ShortArgumentName;
   /**
-   * Optional name that will be used to display the information
-   * about this Argument in the command line interface. If not
-   * specified, `keyword` will be used instead.
-   */
-  displayName?: string;
-  /**
-   * If set to true an error will be thrown if the argument is
-   * not defined nor have a default.
+   * If set to true an error will be thrown if the argument is not
+   * defined nor have a default.
    */
   require?: R;
   /**
@@ -71,47 +99,30 @@ export type ArgumentInitDataBase<R extends boolean> = {
    */
   description?: string;
   /**
-   * The category name under which this argument will be
-   * displayed in the `--help` message.
+   * The category name under which this argument will be displayed in
+   * the `--help` message.
    */
   category?: string;
+  /**
+   * The default value that's provided if the argument is not
+   * specified in the CLI.
+   */
+  default?: TypeOfArg<DT>;
+  /**
+   * Type of the data that's expected. The value provided via the CLI
+   * will be converted to this type if possible, if it's not possible
+   * the program will exit with an appropriate error.
+   */
+  dataType: DT;
+  /**
+   * When the expected type is a boolean, if this option is enabled
+   * the value is inverted (when specified as cli arg it's `false`,
+   * when not specified it's `true`).
+   */
+  boolInvert?: boolean;
 };
 
-export type ArgumentInitData<
-  DT extends ArgumentDataType | undefined,
-  R extends boolean
-> = ArgumentInitDataBase<R> &
-  (TypeIsUndefined<DT> extends true
-    ? {
-        /**
-         * The default value that's provided if the argument is
-         * not specified in the CLI.
-         */
-        default?: TypeOfArg<ArgumentDataType>;
-        /**
-         * Type of the data that's expected. The value provided
-         * via the CLI will be converted to this type if
-         * possible, if it's not possible the program will exit
-         * with an appropriate error.
-         */
-        dataType?: undefined;
-      }
-    : {
-        /**
-         * The default value that's provided if the argument is
-         * not specified in the CLI.
-         */
-        default?: TypeOfArg<DT>;
-        /**
-         * Type of the data that's expected. The value provided
-         * via the CLI will be converted to this type if
-         * possible, if it's not possible the program will exit
-         * with an appropriate error.
-         */
-        dataType?: DT;
-      });
-
 export type ArgumentContext<
-  DT extends ArgumentDataType | undefined,
-  R extends boolean
+  DT extends ArgumentDataType = ArgumentDataType,
+  R extends boolean = boolean,
 > = ReWrap<ArgumentInitData<DT, R>>;
