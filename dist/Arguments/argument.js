@@ -174,6 +174,6 @@ class Argument {
         this._value = this.getArgumentValue();
     }
 }
+exports.Argument = Argument;
 Argument._isCommandInitializing = false;
 Argument.initiatedArguments = [];
-exports.Argument = Argument;
