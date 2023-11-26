@@ -10,3 +10,4 @@
 /.yarnrc.yml
 /tsconfig.json
 /vitest.config.ts
+/scripts

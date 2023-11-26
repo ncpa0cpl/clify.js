@@ -1,6 +1,14 @@
 {
   "name": "clify.js",
-  "main": "./dist/index.js",
+  "main": "./dist/legacy/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
   "description": "A simple CLI framework for JavaScript command line tools.",
   "keywords": [
     "cli",
@@ -22,8 +30,9 @@
     "gjs"
   ],
   "license": "MIT",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "devDependencies": {
+    "@ncpa0cpl/nodepack": "^2.3.0",
     "@types/minimist": "^1.2.5",
     "@types/node": "^18",
     "dprint": "^0.42.5",
@@ -36,7 +45,7 @@
     "minimist": "^1.2.8"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node ./scripts/build.mjs",
     "tsc": "tsc --noEmit",
     "test:unit": "vitest run"
   },
