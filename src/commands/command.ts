@@ -163,7 +163,7 @@ export class Cmd implements Command, CommandInitPhase {
       usage += " [...OPTIONS]";
     }
 
-    let commandsList = "";
+    let commandsList: string[] = [];
 
     if (this.subCommands.length > 0) {
       const cmdNames = this.subCommands.map((cmd) => {
@@ -177,14 +177,13 @@ export class Cmd implements Command, CommandInitPhase {
         .map((cmd, i) => {
           return cmd.padEnd(longestLen + 4) + this.subCommands[i]!.description;
         })
-        .sort(alphasort)
-        .join("\n");
+        .sort(alphasort);
     }
 
-    let optsList = "";
+    let optsList: string[] = [];
     if (this.ownOptions.length > 0) {
       const optNames = this.ownOptions.map((arg) => {
-        return `  ${arg.getName()}`;
+        return `  ${arg.getNameWithType()}`;
       });
       const longestLen = optNames.reduce(
         (a, b) => (a.length > b.length ? a : b),
@@ -196,8 +195,7 @@ export class Cmd implements Command, CommandInitPhase {
             arg.padEnd(longestLen + 4) + this.ownOptions[i]!.getDescription()
           );
         })
-        .sort(alphasort)
-        .join("\n");
+        .sort(alphasort);
     }
 
     log(usage);
@@ -205,16 +203,19 @@ export class Cmd implements Command, CommandInitPhase {
       log("");
       log(this.description);
     }
-    log("");
-    if (commandsList) {
+    if (commandsList.length > 0) {
+      log("");
       log("Commands:");
-      log(commandsList);
-      log("");
+      for (const cmd of commandsList) {
+        log(cmd);
+      }
     }
-    if (optsList) {
-      log("Options:");
-      log(optsList);
+    if (optsList.length > 0) {
       log("");
+      log("Options:");
+      for (const opt of optsList) {
+        log(opt);
+      }
     }
   }
 
@@ -240,10 +241,10 @@ export class Cmd implements Command, CommandInitPhase {
     });
   }
 
-  protected async prepare(): Promise<boolean> {
+  protected async prepare(): Promise<"ok" | "skip" | "fail"> {
     if ("help" in this.parsedArgs) {
       this.printHelp();
-      return false;
+      return "skip";
     }
 
     // Detect unknown arguments
@@ -265,7 +266,7 @@ export class Cmd implements Command, CommandInitPhase {
 
     if (unknownArgs.length > 0) {
       this.printUnknownArgsMsg(unknownArgs);
-      return false;
+      return "fail";
     }
 
     // Validate known arguments
@@ -280,15 +281,15 @@ export class Cmd implements Command, CommandInitPhase {
 
     if (validationErrors.length > 0) {
       this.printArgumentErrors(validationErrors);
-      return false;
+      return "fail";
     }
 
     if (this.ownInput) {
       await this.ownInput.prepare();
-      return this.ownInput.validate();
+      return this.ownInput.validate() ? "ok" : "fail";
     }
 
-    return true;
+    return "ok";
   }
 
   protected runAction() {
@@ -307,9 +308,11 @@ export class Cmd implements Command, CommandInitPhase {
   async start(parsedArgs: minimist.ParsedArgs, input: string | null) {
     this.parsedArgs = parsedArgs;
     this.ownInput?.setArgumentInput(input);
-    if (await this.prepare()) {
+
+    const r = await this.prepare();
+    if (r === "ok") {
       return this.runAction();
-    } else {
+    } else if (r === "fail") {
       return Promise.resolve(new Error("Command failed"));
     }
   }

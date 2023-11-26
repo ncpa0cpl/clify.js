@@ -150,6 +150,27 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
     return `--${this.initParams.name}`;
   }
 
+  getNameWithType(): string {
+    if (this.initParams.type === "boolean") {
+      if (this.initParams.char != null) {
+        return `--${this.initParams.name}, -${this.initParams.char}`;
+      }
+      return `--${this.initParams.name}`;
+    }
+
+    let typeStr: string;
+    if (Array.isArray(this.initParams.type)) {
+      typeStr = "..." + this.initParams.type[0]!;
+    } else {
+      typeStr = this.initParams.type;
+    }
+
+    if (this.initParams.char != null) {
+      return `--${this.initParams.name}, -${this.initParams.char} <${typeStr}>`;
+    }
+    return `--${this.initParams.name} <${typeStr}>`;
+  }
+
   getDescription(): string {
     return this.initParams.description || "";
   }

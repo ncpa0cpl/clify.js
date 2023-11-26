@@ -4,28 +4,37 @@ import { Clify, Program, configure, defineOption } from "../../src/index";
 
 const OptNum = defineOption({
   name: "onum",
+  char: "n",
   type: "number",
+  description: "A number",
 });
 
 const OptBool = defineOption({
   name: "obool",
+  char: "b",
   type: "boolean",
+  description: "A boolean",
 });
 
 const OptStr = defineOption({
   name: "ostr",
+  char: "s",
   type: "string",
+  description: "A string",
 });
 
 const OptInt = defineOption({
   name: "oint",
+  char: "i",
   type: "int",
+  description: "An integer",
 });
 
 const OptNumRequired = defineOption({
   name: "onumreq",
   type: "number",
   required: true,
+  description: "A number (required)",
 });
 
 const OptBoolRequired = defineOption({
@@ -44,26 +53,31 @@ const OptIntRequired = defineOption({
   name: "ointreq",
   type: "int",
   required: true,
+  description: "An integer (required)",
 });
 
 const OptNumArr = defineOption({
   name: "onumarr",
   type: ["number"],
+  description: "A number (accepts multiple values)",
 });
 
 const OptBoolArr = defineOption({
   name: "oboolarr",
   type: ["boolean"],
+  description: "A boolean (accepts multiple values)",
 });
 
 const OptStrArr = defineOption({
   name: "ostrarr",
   type: ["string"],
+  description: "A string (accepts multiple values)",
 });
 
 const OptIntArr = defineOption({
   name: "ointarr",
   type: ["int"],
+  description: "An integer (accepts multiple values)",
 });
 
 const OptNumArrRequired = defineOption({
@@ -118,6 +132,164 @@ describe("integration", () => {
     onRun.mockReset();
   });
 
+  describe("help message", () => {
+    it("displays the subcommands with descriptions", async () => {
+      const program = configure((app) => {
+        app.setName("program");
+
+        app.command("foo", (foo) => {
+          foo.setDescription("Foo command");
+          return onRun;
+        });
+
+        app.command("bar", (bar) => {
+          bar.setDescription("Bar command");
+          return onRun;
+        });
+      });
+
+      const result = await runProgram(program, ["--help"]);
+
+      expect(result).toBeUndefined();
+      expect(onRun).not.toHaveBeenCalled();
+      expect(logs.info).toEqual([
+        "Usage: program COMMAND",
+        "",
+        "Commands:",
+        "  bar    Bar command",
+        "  foo    Foo command",
+      ]);
+    });
+
+    it("displays the options with descriptions", async () => {
+      const program = configure((app) => {
+        app.setName("program");
+
+        app.main((cmd) => {
+          const str = cmd.option(OptStr);
+          const num = cmd.option(OptNum);
+          const bool = cmd.option(OptBool);
+          const int = cmd.option(OptInt);
+          const strArr = cmd.option(OptStrArr);
+          const numArr = cmd.option(OptNumArr);
+          const intArr = cmd.option(OptIntArr);
+
+          return onRun;
+        });
+      });
+
+      const result = await runProgram(program, ["--help"]);
+
+      expect(result).toBeUndefined();
+      expect(onRun).not.toHaveBeenCalled();
+      expect(logs.info).toEqual([
+        "Usage: program [...OPTIONS]",
+        "",
+        "Options:",
+        "  --obool, -b              A boolean",
+        "  --oint, -i <int>         An integer",
+        "  --ointarr <...int>       An integer (accepts multiple values)",
+        "  --onum, -n <number>      A number",
+        "  --onumarr <...number>    A number (accepts multiple values)",
+        "  --ostr, -s <string>      A string",
+        "  --ostrarr <...string>    A string (accepts multiple values)",
+      ]);
+    });
+
+    it("displays both commands and options", async () => {
+      const program = configure((app) => {
+        app.setName("program");
+
+        app.main((cmd) => {
+          const bool = cmd.option(OptBool);
+          const int = cmd.option(OptInt);
+          const num = cmd.option(OptNum);
+          const str = cmd.option(OptStr);
+
+          return onRun;
+        });
+
+        app.command("foo", (foo) => {
+          foo.setDescription("Foo command");
+          return onRun;
+        });
+
+        app.command("bar", (bar) => {
+          bar.setDescription("Bar command");
+          return onRun;
+        });
+      });
+
+      const result = await runProgram(program, ["--help"]);
+
+      expect(result).toBeUndefined();
+      expect(onRun).not.toHaveBeenCalled();
+      expect(logs.info).toEqual([
+        "Usage: program COMMAND? [...OPTIONS]",
+        "",
+        "Commands:",
+        "  bar    Bar command",
+        "  foo    Foo command",
+        "",
+        "Options:",
+        "  --obool, -b            A boolean",
+        "  --oint, -i <int>       An integer",
+        "  --onum, -n <number>    A number",
+        "  --ostr, -s <string>    A string",
+      ]);
+    });
+
+    it("displays both subcommands and options of a subcommand", async () => {
+      const program = configure((app) => {
+        app.setName("program");
+
+        app.main((cmd) => {
+          const bool = cmd.option(OptBool);
+          const int = cmd.option(OptInt);
+          const num = cmd.option(OptNum);
+          const str = cmd.option(OptStr);
+
+          return onRun;
+        });
+
+        const foo = app.command("foo", (foo) => {
+          foo.setDescription("Foo command");
+          const int = foo.option(OptIntRequired);
+          const num = foo.option(OptNumRequired);
+
+          return onRun;
+        });
+
+        foo.command("sub-foo", (subFoo) => {
+          subFoo.setDescription("Sub Foo command");
+          return onRun;
+        });
+
+        app.command("bar", (bar) => {
+          bar.setDescription("Bar command");
+          return onRun;
+        });
+      });
+
+      const result = await runProgram(program, ["foo", "--help"]);
+
+      expect(result).toBeUndefined();
+      expect(onRun).not.toHaveBeenCalled();
+      expect(logs.info).toEqual([
+        "Usage: program foo COMMAND? [...OPTIONS]",
+        "",
+        "Foo command",
+        "",
+        "Commands:",
+        "  sub-foo    Sub Foo command",
+        "",
+        "Options:",
+        "  --ointreq <int>       An integer (required)",
+        "  --onumreq <number>    A number (required)",
+      ]);
+    });
+  });
+
   describe("handles invalid options", () => {
     describe("incorrect type", () => {
       it("requires number, receives string", async () => {
@@ -133,7 +305,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'number', but received 'string': --onum",
+          "  Invalid option, expected 'number', but received 'string': --onum, -n",
         ]);
       });
 
@@ -150,7 +322,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'number', but received 'boolean': --onum",
+          "  Invalid option, expected 'number', but received 'boolean': --onum, -n",
         ]);
       });
 
@@ -172,7 +344,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'single value', but received 'multiple': --onum",
+          "  Invalid option, expected 'single value', but received 'multiple': --onum, -n",
         ]);
       });
 
@@ -189,7 +361,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'integer', but received 'float': --oint",
+          "  Invalid option, expected 'integer', but received 'float': --oint, -i",
         ]);
       });
 
@@ -206,7 +378,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'integer', but received 'string': --oint",
+          "  Invalid option, expected 'integer', but received 'string': --oint, -i",
         ]);
       });
 
@@ -223,7 +395,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'integer', but received 'boolean': --oint",
+          "  Invalid option, expected 'integer', but received 'boolean': --oint, -i",
         ]);
       });
 
@@ -245,7 +417,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'single value', but received 'multiple': --oint",
+          "  Invalid option, expected 'single value', but received 'multiple': --oint, -i",
         ]);
       });
 
@@ -262,7 +434,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'boolean', but received 'string': --obool",
+          "  Invalid option, expected 'boolean', but received 'string': --obool, -b",
         ]);
       });
 
@@ -279,7 +451,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'boolean', but received 'number': --obool",
+          "  Invalid option, expected 'boolean', but received 'number': --obool, -b",
         ]);
       });
 
@@ -301,7 +473,7 @@ describe("integration", () => {
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([
           "Invalid options:",
-          "  Invalid option, expected 'single value', but received 'multiple': --obool",
+          "  Invalid option, expected 'single value', but received 'multiple': --obool, -b",
         ]);
       });
 
