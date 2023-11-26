@@ -6,31 +6,44 @@ function defaultStdinReader() {
         read() {
             let data = "";
             const stdin = process.stdin;
+            const orgEncoding = stdin.readableEncoding ?? undefined;
             stdin.setEncoding("utf8");
-            stdin.on("data", (chunk) => {
+            const onData = (chunk) => {
                 data += chunk;
-            });
+            };
+            stdin.on("data", onData);
             return new Promise((resolve) => {
-                stdin.on("end", () => {
+                stdin.once("end", () => {
+                    stdin.removeListener("data", onData);
+                    stdin.setEncoding(orgEncoding);
                     resolve(data);
                 });
             });
         },
     };
 }
+function defaultArgGetter() {
+    return process.argv.slice(2);
+}
+function defaultLogger(type, message) {
+    switch (type) {
+        case "info":
+            console.log(...message);
+            break;
+        case "error":
+            console.error(...message);
+            break;
+        case "warning":
+            console.warn(...message);
+            break;
+    }
+}
 class ClifyGlobals {
     static getStdinReader = defaultStdinReader;
-    static arggetter = () => process.argv.slice(2);
-    static logger = (type, message) => {
-        if (type === "error") {
-            console.error(message);
-        }
-        else {
-            console.log(message);
-        }
-    };
+    static argGetter = defaultArgGetter;
+    static logger = defaultLogger;
     static setArgGetter(arggetter) {
-        this.arggetter = arggetter;
+        this.argGetter = arggetter;
     }
     static setLogger(logger) {
         this.logger = logger;
@@ -39,13 +52,16 @@ class ClifyGlobals {
         this.getStdinReader = getReader;
     }
     static getArgs() {
-        return this.arggetter();
+        return this.argGetter();
     }
-    static printError(message) {
+    static err(...message) {
         this.logger("error", message);
     }
-    static printMessage(message) {
-        this.logger("message", message);
+    static log(...message) {
+        this.logger("info", message);
+    }
+    static warn(...message) {
+        this.logger("warning", message);
     }
     static getStdin() {
         return this.getStdinReader();

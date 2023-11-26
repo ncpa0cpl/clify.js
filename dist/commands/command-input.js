@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CmdInput = void 0;
-const clify_1 = require("./clify");
+const clify_1 = require("../clify");
 class CmdInput {
     command;
     argumentInput = null;

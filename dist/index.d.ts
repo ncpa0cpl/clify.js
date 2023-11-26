@@ -1,6 +1,7 @@
-export type { Argument } from "./arguments/argument";
-export type { Clify } from "./clify";
-export type { Command, CommandInitCallback, CommandInitPhase, CommandInput, } from "./command";
+export type { LogMessage, LogType, Logger, StdinReader } from "./clify";
+export type { Command, CommandInitCallback, CommandInitPhase, CommandInput, } from "./commands/command";
+export type { Option } from "./options/option";
 export type { Program } from "./program";
-export { defineArg } from "./arguments/argument";
+export { Clify } from "./clify";
 export { configure } from "./configure";
+export { defineOption } from "./options/option";

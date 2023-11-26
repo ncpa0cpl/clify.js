@@ -26,10 +26,14 @@ class ClifyProgram {
     }
     run(command, args) {
         const parsedArgs = this.init(command, args);
+        if (parsedArgs.version) {
+            this.mainCommand.printVersionInfo();
+            return Promise.resolve();
+        }
         const [cmd, input] = this.findCommand(parsedArgs._);
         if (cmd == null) {
             const errMsg = `Unknown command: ${parsedArgs._.join(" ")}`;
-            clify_1.ClifyGlobals.printError(errMsg);
+            clify_1.ClifyGlobals.err(errMsg);
             return Promise.resolve(new Error(errMsg));
         }
         return cmd.start(parsedArgs, input);
