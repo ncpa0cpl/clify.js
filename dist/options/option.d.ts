@@ -47,5 +47,15 @@ export declare abstract class Opt<T extends OptionType, R extends boolean> {
     getNameWithType(): string;
     getDescription(): string;
 }
-export declare const defineOption: <T extends OptionType, R extends boolean = false>(params: OptionInitParams<T, R>) => OptConstructor<T, R>;
+export declare function defineOption<T extends OptionType>(params: OptionInitParams<T, boolean> & {
+    default?: undefined;
+    required?: false;
+}): OptConstructor<T, false>;
+export declare function defineOption<T extends OptionType>(params: OptionInitParams<T, boolean> & {
+    default?: undefined;
+    required: true;
+}): OptConstructor<T, true>;
+export declare function defineOption<T extends OptionType>(params: OptionInitParams<T, boolean> & {
+    default: MapType<T>;
+}): OptConstructor<T, true>;
 export {};

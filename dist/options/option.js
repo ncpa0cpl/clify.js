@@ -33,6 +33,7 @@ class Opt {
     init() {
         const name = this.getName();
         const parsedArgs = this.command.getParsedArgs();
+        this._default = this.initParams.default;
         if (this.initParams.name in parsedArgs) {
             const v = (0, convert_option_value_1.convertOptionValue)(parsedArgs[this.initParams.name], this.initParams.type, name);
             if (v instanceof option_error_1.OptionError) {
@@ -51,7 +52,7 @@ class Opt {
             this._isSet = true;
             this._value = v;
         }
-        else if (this.initParams.required) {
+        else if (this.initParams.required && this._default == null) {
             return new option_error_1.UnspecifiedOptionError(name);
         }
         return this.validate();
@@ -100,7 +101,7 @@ class Opt {
     }
 }
 exports.Opt = Opt;
-const defineOption = (params) => {
+function defineOption(params) {
     return Opt.define(params);
-};
+}
 exports.defineOption = defineOption;

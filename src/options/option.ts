@@ -81,6 +81,9 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
   init(): null | OptionError {
     const name = this.getName();
     const parsedArgs = this.command.getParsedArgs();
+
+    this._default = this.initParams.default;
+
     if (this.initParams.name in parsedArgs) {
       const v = convertOptionValue<T>(
         parsedArgs[this.initParams.name],
@@ -111,7 +114,7 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
 
       this._isSet = true;
       this._value = v;
-    } else if (this.initParams.required) {
+    } else if (this.initParams.required && this._default == null) {
       return new UnspecifiedOptionError(name);
     }
 
@@ -176,8 +179,23 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
   }
 }
 
-export const defineOption = <T extends OptionType, R extends boolean = false>(
+export function defineOption<T extends OptionType>(
+  params: OptionInitParams<T, boolean> & {
+    default?: undefined;
+    required?: false;
+  }
+): OptConstructor<T, false>;
+export function defineOption<T extends OptionType>(
+  params: OptionInitParams<T, boolean> & {
+    default?: undefined;
+    required: true;
+  }
+): OptConstructor<T, true>;
+export function defineOption<T extends OptionType>(
+  params: OptionInitParams<T, boolean> & { default: MapType<T> }
+): OptConstructor<T, true>;
+export function defineOption<T extends OptionType, R extends boolean = false>(
   params: OptionInitParams<T, R>
-): OptConstructor<T, R> => {
+): OptConstructor<T, R> {
   return Opt.define(params);
-};
+}
