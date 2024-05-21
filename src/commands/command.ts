@@ -1,21 +1,46 @@
 import minimist from "minimist";
-import { ClifyGlobals } from "../clify";
+import { ClifyGlobals, StdinIterator } from "../clify";
 import { Opt, OptConstructor, Option, OptionType } from "../options/option";
 import { OptionError } from "../options/option-error";
-import { CmdInput } from "./command-input";
+import { CmdInput, CmdInputBase, CmdInputStream } from "./command-input";
 
 export type CommandResult = any | Promise<any>;
 
 export interface CommandInput {
   source: "argument" | "stdin";
-  get(): string;
+  get(): string | null;
+}
+
+export interface CommandInputStream {
+  source: "argument" | "stdin";
+  get(): StdinIterator | string | null;
 }
 
 export interface CommandInitCallback {
   (command: CommandInitPhase): () => CommandResult;
 }
 
+export interface InputStreamOptions {
+  /**
+   * The name that will be displayed in the help message instead of
+   * the standard `INPUT`.
+   */
+  name?: string;
+}
+
+export interface InputOptions extends InputStreamOptions {
+  /**
+   * Whether to read from the stdin if no input argument is given.
+   * If the `non-tty-only` is set, the stdin will be read only if the
+   * `process.stdin.isTTY` is false.
+   *
+   * @default true
+   */
+  stdin?: boolean | "non-tty-only";
+}
+
 export interface CommandInitPhase {
+  setDescription(description: string): void;
   /**
    * Define a cli option for the command. Should be called inside the command
    * initialization callback, but outside the action callback.
@@ -25,10 +50,15 @@ export interface CommandInitPhase {
   ): Option<T, R>;
   /**
    * Creates a interface that can be used to read the command input. Input
-   * can be either a filepath given as a command line argument, or the stdin.
+   * can be either a string given as a command line argument, or the stdin.
    */
-  input(): CommandInput;
-  setDescription(description: string): void;
+  input(options?: InputOptions): CommandInput;
+  /**
+   * Creates a interface that can be used to read the command input chunk by
+   * chunk (in case of reading from stdin). Input can be either a string given
+   * as a command line argument, or the stdin.
+   */
+  inputStream(options?: InputStreamOptions): CommandInputStream;
 }
 
 export interface Command {
@@ -56,7 +86,7 @@ export class Cmd implements Command, CommandInitPhase {
   protected ownAction: (() => any) | undefined;
   protected subCommands: Array<Cmd> = [];
   protected parsedArgs!: minimist.ParsedArgs;
-  protected ownInput: CmdInput | undefined;
+  protected ownInput: CmdInputBase | undefined;
 
   protected description: string = "";
 
@@ -77,12 +107,26 @@ export class Cmd implements Command, CommandInitPhase {
     return option;
   }
 
-  input(): CommandInput {
+  input(options?: InputOptions): CommandInput {
     if (this.ownInput != null) {
+      if (options != null) {
+        this.ownInput.setOptions(options);
+      }
       return this.ownInput;
     }
 
-    return (this.ownInput = new CmdInput(this));
+    return (this.ownInput = new CmdInput(this, options));
+  }
+
+  inputStream(options?: InputStreamOptions): CommandInputStream {
+    if (this.ownInput != null) {
+      if (options != null) {
+        this.ownInput.setOptions(options);
+      }
+      return this.ownInput;
+    }
+
+    return (this.ownInput = new CmdInputStream(this, options));
   }
 
   setDescription(description: string) {
@@ -133,6 +177,7 @@ export class Cmd implements Command, CommandInitPhase {
     if (this.ownAction) {
       state |= CmdConfigState.HAS_ACTION;
     }
+    const inputName = this.ownInput?.getName() ?? "INPUT";
 
     switch (state) {
       case CmdConfigState.HAS_NOTHING:
@@ -141,7 +186,7 @@ export class Cmd implements Command, CommandInitPhase {
       case CmdConfigState.HAS_INPUT:
       case CmdConfigState.HAS_INPUT_ACTION:
         // no sub-commands
-        usage += " INPUT";
+        usage += ` ${inputName}`;
         break;
       case CmdConfigState.HAS_SUBCMD:
         // Has sub-commands, but no action itself
@@ -152,10 +197,10 @@ export class Cmd implements Command, CommandInitPhase {
         usage += " COMMAND?";
         break;
       case CmdConfigState.HAS_SUBCMD_INPUT:
-        usage += " COMMAND|INPUT";
+        usage += ` COMMAND|${inputName}`;
         break;
       case CmdConfigState.HAS_SUBCMD_INPUT_ACTION:
-        usage += " COMMAND|INPUT?";
+        usage += ` COMMAND|${inputName}?`;
         break;
     }
 

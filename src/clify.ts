@@ -1,6 +1,19 @@
 export type LogMessage = string | number | boolean | null | undefined;
 export type LogType = "error" | "warning" | "info";
-export type StdinReader = { read(): Promise<string> };
+export type StdinIterator = {
+  next(): Promise<Buffer | "done">;
+  done(): boolean;
+};
+export type StdinReader = {
+  /**
+   * Reads the entire stdin in one go and returns it as a UTF-8 string.
+   */
+  read(): Promise<string>;
+  /**
+   * Returns an iterator that reads from stdin.
+   */
+  getIterator(): StdinIterator;
+};
 export type Logger = (type: LogType, message: LogMessage[]) => void;
 
 export interface Clify {
@@ -30,6 +43,54 @@ function defaultStdinReader(): StdinReader {
           resolve(data);
         });
       });
+    },
+    getIterator() {
+      let done = false;
+      let onNextQueue: ((nextChunk?: Buffer) => void)[] = [];
+      const chunks: Buffer[] = [];
+      const stdin = process.stdin;
+
+      const onData = (chunk: Buffer) => {
+        const onNext = onNextQueue.shift();
+
+        if (onNext) {
+          onNext(chunk);
+        } else {
+          chunks.push(chunk);
+        }
+      };
+      const onEnd = () => {
+        done = true;
+        stdin.removeListener("data", onData);
+        onNextQueue
+          .splice(0, onNextQueue.length)
+          .forEach((cb) => cb(chunks.shift()));
+      };
+
+      stdin.on("data", onData);
+      stdin.once("end", onEnd);
+
+      return {
+        done() {
+          return done && !chunks.length;
+        },
+        next() {
+          if (chunks.length) {
+            return Promise.resolve(chunks.shift()!);
+          }
+          if (done) {
+            return Promise.resolve("done");
+          }
+          return new Promise<Buffer | "done">((resolve) => {
+            onNextQueue.push((nextChunk) => {
+              if (nextChunk) {
+                return resolve(nextChunk);
+              }
+              return resolve("done");
+            });
+          });
+        },
+      };
     },
   };
 }

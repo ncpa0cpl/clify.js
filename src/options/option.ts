@@ -28,9 +28,7 @@ export type OptionInitParams<T extends OptionType, R extends boolean> = {
   description?: string;
   required?: R;
   default?: MapType<T>;
-  validate?(
-    value: MapType<T>
-  ): "ok" | { expected: string; received: string; message?: string };
+  validate?(value: MapType<T>): "ok" | { expected?: string; message?: string };
 };
 
 export interface Option<T extends OptionType, R extends boolean> {
@@ -130,8 +128,8 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
 
       return new InvalidOptionError(
         this.getName(),
+        String(this.value),
         result.expected,
-        result.received,
         result.message
       );
     }

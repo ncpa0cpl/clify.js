@@ -2,8 +2,8 @@
   "editor.defaultFormatter": "dprint.dprint",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": true,
-    "source.fixAll.eslint": true
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
   },
   "cSpell.words": ["clify"]
 }
