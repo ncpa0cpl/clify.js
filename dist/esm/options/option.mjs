@@ -12,6 +12,7 @@ import {
   OptionError,
   UnspecifiedOptionError
 } from "./option-error.mjs";
+var DEFAULT_CATEGORY = Symbol("default_category");
 var Opt = class _Opt {
   constructor(command) {
     this.command = command;
@@ -78,8 +79,8 @@ var Opt = class _Opt {
       }
       return new InvalidOptionError(
         this.getName(),
+        String(this.value),
         result.expected,
-        result.received,
         result.message
       );
     }
@@ -115,11 +116,18 @@ var Opt = class _Opt {
   getDescription() {
     return this.initParams.description || "";
   }
+  getCategory() {
+    if (this.initParams.category == null) {
+      return DEFAULT_CATEGORY;
+    }
+    return this.initParams.category;
+  }
 };
 function defineOption(params) {
   return Opt.define(params);
 }
 export {
+  DEFAULT_CATEGORY,
   Opt,
   defineOption
 };

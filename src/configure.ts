@@ -44,7 +44,7 @@ export class MainCmd extends Cmd implements MainCommand {
 }
 
 export function configure(
-  configureCallback: (mainCommand: MainCommand) => void
+  configureCallback: (mainCommand: MainCommand) => void,
 ): Program {
   const mainCommand = new MainCmd("");
   assertNotAsync(configureCallback(mainCommand), "configureCallback");

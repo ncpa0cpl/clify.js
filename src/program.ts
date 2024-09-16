@@ -16,7 +16,7 @@ export class ClifyProgram implements Program {
 
   init(
     command?: string | undefined,
-    args?: Record<string, any> | undefined
+    args?: Record<string, any> | undefined,
   ): minimist.ParsedArgs {
     if (command != null) {
       const parsedArgs: minimist.ParsedArgs = {
@@ -36,7 +36,7 @@ export class ClifyProgram implements Program {
 
   run(
     command?: string | undefined,
-    args?: Record<string, any> | undefined
+    args?: Record<string, any> | undefined,
   ): Promise<Error | unknown> {
     const parsedArgs = this.init(command, args);
 

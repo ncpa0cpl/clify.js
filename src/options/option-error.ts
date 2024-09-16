@@ -15,13 +15,13 @@ export class InvalidOptionError extends OptionError {
     optName: string,
     protected received: string,
     protected expected?: string,
-    protected customMessage?: string
+    protected customMessage?: string,
   ) {
     super(
       expected
         ? `Invalid option, expected '${expected}', but received '${received}'`
         : "Invalid option",
-      optName
+      optName,
     );
     this.name = "InvalidOptionError";
   }

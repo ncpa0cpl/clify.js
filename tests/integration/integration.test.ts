@@ -1,6 +1,6 @@
 import minimist from "minimist";
 import { afterEach, beforeAll, describe, expect, it, vitest } from "vitest";
-import { Clify, Program, configure, defineOption } from "../../src/index";
+import { Clify, configure, defineOption, Program } from "../../src/index";
 
 const OptNum = defineOption({
   name: "onum",

@@ -9,21 +9,20 @@ import {
 type BaseTypes = "string" | "number" | "int" | "boolean" | "unknown";
 export type OptionType = BaseTypes | [BaseTypes];
 
-export type MapType<T extends OptionType> = T extends BaseTypes
-  ? {
-      string: string;
-      number: number;
-      int: number;
-      boolean: boolean;
-      unknown: string | number | boolean;
-    }[T]
-  : T extends Array<infer U extends BaseTypes>
-  ? MapType<U>[]
+export type MapType<T extends OptionType> = T extends BaseTypes ? {
+    string: string;
+    number: number;
+    int: number;
+    boolean: boolean;
+    unknown: string | number | boolean;
+  }[T]
+  : T extends Array<infer U extends BaseTypes> ? MapType<U>[]
   : never;
 
 export type OptionInitParams<T extends OptionType, R extends boolean> = {
   type: T;
   name: string;
+  category?: string;
   char?: string;
   description?: string;
   required?: R;
@@ -37,13 +36,16 @@ export interface Option<T extends OptionType, R extends boolean> {
   setDefault(value: MapType<T>): Option<T, R>;
 }
 
-export type OptConstructor<T extends OptionType, R extends boolean> = new (
-  command: Cmd
+export type OptConstructor<T extends OptionType, R extends boolean> = new(
+  command: Cmd,
 ) => Option<T, R>;
+
+export const DEFAULT_CATEGORY = Symbol("default_category");
+export type DEFAULT_CATEGORY = typeof DEFAULT_CATEGORY;
 
 export abstract class Opt<T extends OptionType, R extends boolean> {
   static define<T extends OptionType, R extends boolean>(
-    params: OptionInitParams<T, R>
+    params: OptionInitParams<T, R>,
   ): OptConstructor<T, R> {
     return class extends Opt<T, R> {
       getInitParams(): OptionInitParams<T, R> {
@@ -86,7 +88,7 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
       const v = convertOptionValue<T>(
         parsedArgs[this.initParams.name],
         this.initParams.type,
-        name
+        name,
       );
 
       if (v instanceof OptionError) {
@@ -96,14 +98,14 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
       this._isSet = true;
       this._value = v;
     } else if (
-      this.initParams.char != null &&
-      this.initParams.char in parsedArgs
+      this.initParams.char != null
+      && this.initParams.char in parsedArgs
     ) {
       this._isSet = true;
       const v = convertOptionValue<T>(
         parsedArgs[this.initParams.char],
         this.initParams.type,
-        name
+        name,
       );
 
       if (v instanceof OptionError) {
@@ -130,7 +132,7 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
         this.getName(),
         String(this.value),
         result.expected,
-        result.message
+        result.message,
       );
     }
 
@@ -139,8 +141,8 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
 
   nameMatches(name: string): boolean {
     return (
-      this.initParams.name === name ||
-      (name.length === 1 && this.initParams.char === name)
+      this.initParams.name === name
+      || (name.length === 1 && this.initParams.char === name)
     );
   }
 
@@ -175,25 +177,32 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
   getDescription(): string {
     return this.initParams.description || "";
   }
+
+  getCategory(): string | symbol {
+    if (this.initParams.category == null) {
+      return DEFAULT_CATEGORY;
+    }
+    return this.initParams.category;
+  }
 }
 
 export function defineOption<T extends OptionType>(
   params: OptionInitParams<T, boolean> & {
     default?: undefined;
     required?: false;
-  }
+  },
 ): OptConstructor<T, false>;
 export function defineOption<T extends OptionType>(
   params: OptionInitParams<T, boolean> & {
     default?: undefined;
     required: true;
-  }
+  },
 ): OptConstructor<T, true>;
 export function defineOption<T extends OptionType>(
-  params: OptionInitParams<T, boolean> & { default: MapType<T> }
+  params: OptionInitParams<T, boolean> & { default: MapType<T> },
 ): OptConstructor<T, true>;
 export function defineOption<T extends OptionType, R extends boolean = false>(
-  params: OptionInitParams<T, R>
+  params: OptionInitParams<T, R>,
 ): OptConstructor<T, R> {
   return Opt.define(params);
 }

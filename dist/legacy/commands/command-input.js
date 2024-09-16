@@ -25,16 +25,22 @@ var __publicField = (obj, key, value) => {
 // src/commands/command-input.ts
 var command_input_exports = {};
 __export(command_input_exports, {
-  CmdInput: () => CmdInput
+  CmdInput: () => CmdInput,
+  CmdInputBase: () => CmdInputBase,
+  CmdInputStream: () => CmdInputStream
 });
 module.exports = __toCommonJS(command_input_exports);
 var import_clify = require("../clify.js");
-var CmdInput = class {
-  constructor(command) {
+var CmdInputBase = class {
+  constructor(command, options = {}) {
     this.command = command;
+    this.options = options;
     __publicField(this, "argumentInput", null);
     __publicField(this, "stdinInput", null);
     __publicField(this, "_source", null);
+  }
+  setOptions(options) {
+    this.options = options;
   }
   setArgumentInput(value) {
     this.argumentInput = value;
@@ -44,19 +50,59 @@ var CmdInput = class {
   }
   async prepare() {
     if (this.argumentInput != null) {
-      return;
+      return false;
     }
-    const stdin = import_clify.ClifyGlobals.getStdin();
-    this._source = "stdin";
-    this.stdinInput = await stdin.read();
+    if (this.options.stdin === false) {
+      return false;
+    }
+    if (this.options.stdin === "non-tty-only") {
+      if (process.stdin.isTTY) {
+        return false;
+      }
+    }
+    return true;
   }
   validate() {
     return this.argumentInput != null || this.stdinInput != null;
   }
   get() {
-    return this.argumentInput ?? this.stdinInput;
+  }
+  getName() {
+    return this.options.name;
   }
   get source() {
     return this._source;
+  }
+};
+var CmdInput = class extends CmdInputBase {
+  async prepare() {
+    if (await super.prepare()) {
+      const stdin = import_clify.ClifyGlobals.getStdin();
+      this._source = "stdin";
+      this.stdinInput = await stdin.read();
+      return true;
+    }
+    return false;
+  }
+  get() {
+    return this.argumentInput ?? this.stdinInput ?? null;
+  }
+};
+var CmdInputStream = class extends CmdInputBase {
+  constructor() {
+    super(...arguments);
+    __publicField(this, "stdinIter", null);
+  }
+  async prepare() {
+    if (await super.prepare()) {
+      const stdin = import_clify.ClifyGlobals.getStdin();
+      this._source = "stdin";
+      this.stdinIter = await stdin.getIterator();
+      return true;
+    }
+    return false;
+  }
+  get() {
+    return this.argumentInput ?? this.stdinIter ?? null;
   }
 };

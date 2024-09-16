@@ -24,6 +24,48 @@ function defaultStdinReader() {
           resolve(data);
         });
       });
+    },
+    getIterator() {
+      let done = false;
+      let onNextQueue = [];
+      const chunks = [];
+      const stdin = process.stdin;
+      const onData = (chunk) => {
+        const onNext = onNextQueue.shift();
+        if (onNext) {
+          onNext(chunk);
+        } else {
+          chunks.push(chunk);
+        }
+      };
+      const onEnd = () => {
+        done = true;
+        stdin.removeListener("data", onData);
+        onNextQueue.splice(0, onNextQueue.length).forEach((cb) => cb(chunks.shift()));
+      };
+      stdin.on("data", onData);
+      stdin.once("end", onEnd);
+      return {
+        done() {
+          return done && !chunks.length;
+        },
+        next() {
+          if (chunks.length) {
+            return Promise.resolve(chunks.shift());
+          }
+          if (done) {
+            return Promise.resolve("done");
+          }
+          return new Promise((resolve) => {
+            onNextQueue.push((nextChunk) => {
+              if (nextChunk) {
+                return resolve(nextChunk);
+              }
+              return resolve("done");
+            });
+          });
+        }
+      };
     }
   };
 }

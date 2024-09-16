@@ -29,6 +29,7 @@ __export(command_exports, {
 });
 module.exports = __toCommonJS(command_exports);
 var import_clify = require("../clify.cjs");
+var import_option = require("../options/option.cjs");
 var import_command_input = require("./command-input.cjs");
 var alphasort = (a, b) => a.localeCompare(b);
 var Cmd = class _Cmd {
@@ -48,16 +49,28 @@ var Cmd = class _Cmd {
     this.subCommands.push(cmd);
     return cmd;
   }
-  option(Option) {
-    const option = new Option(this);
+  option(Option2) {
+    const option = new Option2(this);
     this.ownOptions.push(option);
     return option;
   }
-  input() {
+  input(options) {
     if (this.ownInput != null) {
+      if (options != null) {
+        this.ownInput.setOptions(options);
+      }
       return this.ownInput;
     }
-    return this.ownInput = new import_command_input.CmdInput(this);
+    return this.ownInput = new import_command_input.CmdInput(this, options);
+  }
+  inputStream(options) {
+    if (this.ownInput != null) {
+      if (options != null) {
+        this.ownInput.setOptions(options);
+      }
+      return this.ownInput;
+    }
+    return this.ownInput = new import_command_input.CmdInputStream(this, options);
   }
   setDescription(description) {
     this.description = description;
@@ -98,13 +111,14 @@ var Cmd = class _Cmd {
     if (this.ownAction) {
       state |= 4 /* HAS_ACTION */;
     }
+    const inputName = this.ownInput?.getName() ?? "INPUT";
     switch (state) {
       case 0 /* HAS_NOTHING */:
       case 4 /* HAS_ACTION */:
         break;
       case 2 /* HAS_INPUT */:
       case 6 /* HAS_INPUT_ACTION */:
-        usage += " INPUT";
+        usage += ` ${inputName}`;
         break;
       case 1 /* HAS_SUBCMD */:
         usage += " COMMAND";
@@ -113,10 +127,10 @@ var Cmd = class _Cmd {
         usage += " COMMAND?";
         break;
       case 3 /* HAS_SUBCMD_INPUT */:
-        usage += " COMMAND|INPUT";
+        usage += ` COMMAND|${inputName}`;
         break;
       case 7 /* HAS_SUBCMD_INPUT_ACTION */:
-        usage += " COMMAND|INPUT?";
+        usage += ` COMMAND|${inputName}?`;
         break;
     }
     if (this.ownOptions.length > 0) {
@@ -135,18 +149,31 @@ var Cmd = class _Cmd {
         return cmd.padEnd(longestLen + 4) + this.subCommands[i].description;
       }).sort(alphasort);
     }
-    let optsList = [];
+    let defOptsList = [];
+    const categorisedOpts = [];
     if (this.ownOptions.length > 0) {
-      const optNames = this.ownOptions.map((arg) => {
-        return `  ${arg.getNameWithType()}`;
-      });
-      const longestLen = optNames.reduce(
-        (a, b) => a.length > b.length ? a : b,
-        ""
-      ).length;
-      optsList = optNames.map((arg, i) => {
-        return arg.padEnd(longestLen + 4) + this.ownOptions[i].getDescription();
-      }).sort(alphasort);
+      const optionsByCategory = Object.groupBy(
+        this.ownOptions,
+        (opt) => opt.getCategory()
+      );
+      for (const category of Reflect.ownKeys(optionsByCategory)) {
+        const options = optionsByCategory[category];
+        const optNames = options.map((arg) => {
+          return `  ${arg.getNameWithType()}`;
+        });
+        const longestLen = optNames.reduce(
+          (a, b) => a.length > b.length ? a : b,
+          ""
+        ).length;
+        const lines = optNames.map((arg, i) => {
+          return arg.padEnd(longestLen + 4) + options[i].getDescription();
+        }).sort(alphasort);
+        if (category === import_option.DEFAULT_CATEGORY) {
+          defOptsList = lines;
+        } else {
+          categorisedOpts.push([category, lines]);
+        }
+      }
     }
     log(usage);
     if (this.description) {
@@ -160,11 +187,18 @@ var Cmd = class _Cmd {
         log(cmd);
       }
     }
-    if (optsList.length > 0) {
+    if (defOptsList.length > 0 || categorisedOpts.length > 0) {
       log("");
       log("Options:");
-      for (const opt of optsList) {
+      for (const opt of defOptsList) {
         log(opt);
+      }
+      for (const [category, lines] of categorisedOpts) {
+        log("");
+        log(category + ":");
+        for (const l of lines) {
+          log(l);
+        }
       }
     }
   }

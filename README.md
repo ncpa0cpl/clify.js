@@ -4,20 +4,20 @@
 
 ```ts
 #!/usr/bin/env node
-import { Clify, configure } from 'clify.js';
+import { Clify, configure } from "clify.js";
 
 const program = configure(program => {
-    program.setVersion('1.0.0');
-    program.setDescription('A simple cli program');
-    program.setName('my-script');
+  program.setVersion("1.0.0");
+  program.setDescription("A simple cli program");
+  program.setName("my-script");
 
-    program.main((cmd) => {
-        const input = cmd.input();
+  program.main((cmd) => {
+    const input = cmd.input();
 
-        return () => {
-            Clify.log(`Input: <${input.get()}>`)
-        };
-    });
+    return () => {
+      Clify.log(`Input: <${input.get()}>`);
+    };
+  });
 });
 
 program.run();
@@ -38,20 +38,20 @@ Run it:
 $ ./my-script "command input string"
     Input: <command input string>
 ```
-    
+
 ## Options
 
 Create Option definition:
 
 ```ts
-import { defineOption } from 'clify.js';
+import { defineOption } from "clify.js";
 
 const OutfileOption = defineOption({
-    name: 'outfile',
-    char: 'o',
-    description: 'Path to the output file',
-    type: 'string',
-    required: true,
+  name: "outfile",
+  char: "o",
+  description: "Path to the output file",
+  type: "string",
+  required: true,
 });
 ```
 
@@ -59,17 +59,17 @@ Use it in the program:
 
 ```ts
 const program = configure(program => {
-    program.setVersion('1.0.0');
-    program.setDescription('A simple cli program');
-    program.setName('my-script');
+  program.setVersion("1.0.0");
+  program.setDescription("A simple cli program");
+  program.setName("my-script");
 
-    program.main((cmd) => {
-        const outfile = cmd.option(OutfileOption);
+  program.main((cmd) => {
+    const outfile = cmd.option(OutfileOption);
 
-        return () => {
-            Clify.log(`Outfile: <${outfile.value}>`)
-        };
-    });
+    return () => {
+      Clify.log(`Outfile: <${outfile.value}>`);
+    };
+  });
 });
 ```
 
@@ -95,31 +95,31 @@ $ ./my-script --outfile output.txt
 ## Commands
 
 ```ts
-import { configure, defineOption } from 'clify.js';
+import { configure, defineOption } from "clify.js";
 
 const QuietOption = defineOption({
-    name: 'quiet',
-    char: 'q',
-    description: 'Do not output anything',
-    type: 'boolean',
-    default: false,
+  name: "quiet",
+  char: "q",
+  description: "Do not output anything",
+  type: "boolean",
+  default: false,
 });
 
 const program = configure(program => {
-    program.setVersion('1.0.0');
-    program.setDescription('A simple cli program');
-    program.setName('my-script');
+  program.setVersion("1.0.0");
+  program.setDescription("A simple cli program");
+  program.setName("my-script");
 
-    program.command('cmd', (cmd) => {
-        const input = cmd.input();
-        const quiet = cmd.option(QuietOption);
+  program.command("cmd", (cmd) => {
+    const input = cmd.input();
+    const quiet = cmd.option(QuietOption);
 
-        return () => {
-            if (!quiet.value) {
-                Clify.log(`Input: <${input.get()}>`)
-            }
-        };
-    });
+    return () => {
+      if (!quiet.value) {
+        Clify.log(`Input: <${input.get()}>`);
+      }
+    };
+  });
 });
 ```
 
@@ -155,22 +155,22 @@ $ ./my-script cmd --quiet "command input string"
 ## Nested Commands
 
 ```ts
-import { configure } from 'clify.js';
+import { configure } from "clify.js";
 
 const program = configure(program => {
-    program.setVersion('1.0.0');
-    program.setDescription('A simple cli program');
-    program.setName('my-script');
+  program.setVersion("1.0.0");
+  program.setDescription("A simple cli program");
+  program.setName("my-script");
 
-    const cmd = program.command('cmd', (cmd) => {
-        return () => {}
-    });
+  const cmd = program.command("cmd", (cmd) => {
+    return () => {};
+  });
 
-    cmd.command('foo', (cmd) => {
-        return () => {
-            Clify.log('Hi from foo!');
-        }
-    });
+  cmd.command("foo", (cmd) => {
+    return () => {
+      Clify.log("Hi from foo!");
+    };
+  });
 });
 ```
 

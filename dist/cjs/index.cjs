@@ -22,9 +22,16 @@ var src_exports = {};
 __export(src_exports, {
   Clify: () => import_clify.Clify,
   configure: () => import_configure.configure,
+  default: () => src_default,
   defineOption: () => import_option.defineOption
 });
 module.exports = __toCommonJS(src_exports);
 var import_clify = require("./clify.cjs");
 var import_configure = require("./configure.cjs");
 var import_option = require("./options/option.cjs");
+var default_export = {
+  Clify: import_clify.Clify,
+  configure: import_configure.configure,
+  defineOption: import_option.defineOption
+};
+var src_default = default_export;

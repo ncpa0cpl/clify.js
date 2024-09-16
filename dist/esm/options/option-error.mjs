@@ -17,13 +17,13 @@ var OptionError = class extends Error {
   }
 };
 var InvalidOptionError = class extends OptionError {
-  constructor(optName, expected, received, customMessage) {
+  constructor(optName, received, expected, customMessage) {
     super(
-      `Invalid option, expected '${expected}', but received '${received}'`,
+      expected ? `Invalid option, expected '${expected}', but received '${received}'` : "Invalid option",
       optName
     );
-    this.expected = expected;
     this.received = received;
+    this.expected = expected;
     this.customMessage = customMessage;
     this.name = "InvalidOptionError";
   }

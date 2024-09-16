@@ -15,7 +15,7 @@ describe("convertOptionValue", () => {
 
     it("throw if provided more than one argument", () => {
       expect(
-        conv(minimist(["-v", "123", "-v", "0"]).v, "string", "")
+        conv(minimist(["-v", "123", "-v", "0"]).v, "string", ""),
       ).toBeInstanceOf(InvalidOptionError);
     });
   });
@@ -30,17 +30,17 @@ describe("convertOptionValue", () => {
 
     it("should throw if value is not a number", () => {
       expect(conv(minimist(["-v", "hello"]).v, "number", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
       expect(conv(minimist(["-v"]).v, "number", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
       expect(conv(NaN, "number", "")).toBeInstanceOf(InvalidOptionError);
     });
 
     it("throw if provided more than one argument", () => {
       expect(
-        conv(minimist(["-v", "123", "-v", "345"]).v, "number", "")
+        conv(minimist(["-v", "123", "-v", "345"]).v, "number", ""),
       ).toBeInstanceOf(InvalidOptionError);
     });
   });
@@ -54,20 +54,20 @@ describe("convertOptionValue", () => {
 
     it("should throw if value is not an integer", () => {
       expect(conv(minimist(["-v", "1.23"]).v, "int", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
       expect(conv(minimist(["-v", "hello"]).v, "int", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
       expect(conv(minimist(["-v"]).v, "int", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
       expect(conv(NaN, "int", "")).toBeInstanceOf(InvalidOptionError);
     });
 
     it("throw if provided more than one argument", () => {
       expect(
-        conv(minimist(["-v", "123", "-v", "345"]).v, "int", "")
+        conv(minimist(["-v", "123", "-v", "345"]).v, "int", ""),
       ).toBeInstanceOf(InvalidOptionError);
     });
   });
@@ -79,16 +79,16 @@ describe("convertOptionValue", () => {
 
     it("should throw if value is not a boolean", () => {
       expect(conv(minimist(["-v", "1"]).v, "boolean", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
       expect(conv(minimist(["-v", "hello"]).v, "boolean", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
     });
 
     it("throw if provided more than one argument", () => {
       expect(conv(minimist(["-v=1", "-v"]).v, "boolean", "")).toBeInstanceOf(
-        InvalidOptionError
+        InvalidOptionError,
       );
     });
   });
@@ -104,7 +104,11 @@ describe("convertOptionValue", () => {
           "hello",
         ]);
         expect(
-          conv(minimist(["-v", "123", "-v", "", "-v", "foo"]).v, ["string"], "")
+          conv(
+            minimist(["-v", "123", "-v", "", "-v", "foo"]).v,
+            ["string"],
+            "",
+          ),
         ).toEqual(["123", "true", "foo"]);
         expect(conv(minimist(["-v=", "-v=bar"]).v, ["string"], "")).toEqual([
           "",

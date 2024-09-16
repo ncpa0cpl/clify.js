@@ -25,12 +25,14 @@ var __publicField = (obj, key, value) => {
 // src/options/option.ts
 var option_exports = {};
 __export(option_exports, {
+  DEFAULT_CATEGORY: () => DEFAULT_CATEGORY,
   Opt: () => Opt,
   defineOption: () => defineOption
 });
 module.exports = __toCommonJS(option_exports);
 var import_convert_option_value = require("./convert-option-value.cjs");
 var import_option_error = require("./option-error.cjs");
+var DEFAULT_CATEGORY = Symbol("default_category");
 var Opt = class _Opt {
   constructor(command) {
     this.command = command;
@@ -97,8 +99,8 @@ var Opt = class _Opt {
       }
       return new import_option_error.InvalidOptionError(
         this.getName(),
+        String(this.value),
         result.expected,
-        result.received,
         result.message
       );
     }
@@ -133,6 +135,12 @@ var Opt = class _Opt {
   }
   getDescription() {
     return this.initParams.description || "";
+  }
+  getCategory() {
+    if (this.initParams.category == null) {
+      return DEFAULT_CATEGORY;
+    }
+    return this.initParams.category;
   }
 };
 function defineOption(params) {

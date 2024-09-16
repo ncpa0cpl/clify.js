@@ -1,6 +1,12 @@
 import minimist from "minimist";
 import { ClifyGlobals, StdinIterator } from "../clify";
-import { Opt, OptConstructor, Option, OptionType } from "../options/option";
+import {
+  DEFAULT_CATEGORY,
+  Opt,
+  OptConstructor,
+  Option,
+  OptionType,
+} from "../options/option";
 import { OptionError } from "../options/option-error";
 import { CmdInput, CmdInputBase, CmdInputStream } from "./command-input";
 
@@ -46,7 +52,7 @@ export interface CommandInitPhase {
    * initialization callback, but outside the action callback.
    */
   option<T extends OptionType, R extends boolean>(
-    option: OptConstructor<T, R>
+    option: OptConstructor<T, R>,
   ): Option<T, R>;
   /**
    * Creates a interface that can be used to read the command input. Input
@@ -59,6 +65,10 @@ export interface CommandInitPhase {
    * as a command line argument, or the stdin.
    */
   inputStream(options?: InputStreamOptions): CommandInputStream;
+  /**
+   * Prints the help message for this command.
+   */
+  printHelp(): void;
 }
 
 export interface Command {
@@ -100,7 +110,7 @@ export class Cmd implements Command, CommandInitPhase {
   }
 
   option<T extends OptionType, R extends boolean>(
-    Option: OptConstructor<T, R>
+    Option: OptConstructor<T, R>,
   ): Option<T, R> {
     const option = new Option(this);
     this.ownOptions.push(option as Opt<T, R>);
@@ -141,7 +151,7 @@ export class Cmd implements Command, CommandInitPhase {
     const [firstCommand] = command;
 
     const subCommand = this.subCommands.find(
-      (cmd) => cmd.cmdName === firstCommand
+      (cmd) => cmd.cmdName === firstCommand,
     );
 
     if (subCommand == null) {
@@ -163,7 +173,7 @@ export class Cmd implements Command, CommandInitPhase {
     return this.cmdName;
   }
 
-  protected printHelp() {
+  printHelp() {
     const log = ClifyGlobals.log.bind(ClifyGlobals);
 
     let usage = `Usage: ${this.getName()}`;
@@ -216,7 +226,7 @@ export class Cmd implements Command, CommandInitPhase {
       });
       const longestLen = cmdNames.reduce(
         (a, b) => (a.length > b.length ? a : b),
-        ""
+        "",
       ).length;
       commandsList = cmdNames
         .map((cmd, i) => {
@@ -225,22 +235,39 @@ export class Cmd implements Command, CommandInitPhase {
         .sort(alphasort);
     }
 
-    let optsList: string[] = [];
+    let defOptsList: string[] = [];
+    const categorisedOpts: Array<[category: string, lines: string[]]> = [];
+
     if (this.ownOptions.length > 0) {
-      const optNames = this.ownOptions.map((arg) => {
-        return `  ${arg.getNameWithType()}`;
-      });
-      const longestLen = optNames.reduce(
-        (a, b) => (a.length > b.length ? a : b),
-        ""
-      ).length;
-      optsList = optNames
-        .map((arg, i) => {
-          return (
-            arg.padEnd(longestLen + 4) + this.ownOptions[i]!.getDescription()
-          );
-        })
-        .sort(alphasort);
+      const optionsByCategory = Object.groupBy(
+        this.ownOptions,
+        opt => opt.getCategory(),
+      );
+
+      for (const category of Reflect.ownKeys(optionsByCategory)) {
+        const options = optionsByCategory[category]!;
+
+        const optNames = options.map((arg) => {
+          return `  ${arg.getNameWithType()}`;
+        });
+        const longestLen = optNames.reduce(
+          (a, b) => (a.length > b.length ? a : b),
+          "",
+        ).length;
+        const lines = optNames
+          .map((arg, i) => {
+            return (
+              arg.padEnd(longestLen + 4) + options[i]!.getDescription()
+            );
+          })
+          .sort(alphasort);
+
+        if (category === DEFAULT_CATEGORY) {
+          defOptsList = lines;
+        } else {
+          categorisedOpts.push([category as string, lines]);
+        }
+      }
     }
 
     log(usage);
@@ -255,11 +282,18 @@ export class Cmd implements Command, CommandInitPhase {
         log(cmd);
       }
     }
-    if (optsList.length > 0) {
+    if (defOptsList.length > 0 || categorisedOpts.length > 0) {
       log("");
       log("Options:");
-      for (const opt of optsList) {
+      for (const opt of defOptsList) {
         log(opt);
+      }
+      for (const [category, lines] of categorisedOpts) {
+        log("");
+        log(category + ":");
+        for (const l of lines) {
+          log(l);
+        }
       }
     }
   }
@@ -294,7 +328,7 @@ export class Cmd implements Command, CommandInitPhase {
 
     // Detect unknown arguments
     const argNames = Object.keys(this.parsedArgs).filter(
-      (key) => key !== "_" && key !== "__"
+      (key) => key !== "_" && key !== "__",
     );
 
     const unknownArgs: string[] = [];

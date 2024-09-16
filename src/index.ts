@@ -1,4 +1,4 @@
-export type { LogMessage, LogType, Logger, StdinReader } from "./clify";
+export type { Logger, LogMessage, LogType, StdinReader } from "./clify";
 export type {
   Command,
   CommandInitCallback,
@@ -8,6 +8,16 @@ export type {
 export type { Option } from "./options/option";
 export type { Program } from "./program";
 
-export { Clify } from "./clify";
-export { configure } from "./configure";
-export { defineOption } from "./options/option";
+import { Clify } from "./clify";
+import { configure } from "./configure";
+import { defineOption } from "./options/option";
+
+export { Clify, configure, defineOption };
+
+const default_export = {
+  Clify,
+  configure,
+  defineOption,
+};
+
+export default default_export;

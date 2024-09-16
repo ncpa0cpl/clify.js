@@ -4,7 +4,7 @@ import { InvalidOptionError } from "./option-error";
 export function convertOptionValue<T extends OptionType>(
   value: string | number | boolean | Array<string | number | boolean>,
   optType: T,
-  optName: string
+  optName: string,
 ): MapType<T> | InvalidOptionError {
   if (Array.isArray(optType)) {
     if (!Array.isArray(value)) {

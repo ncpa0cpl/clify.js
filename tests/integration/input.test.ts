@@ -13,7 +13,7 @@ async function runProgram(vargs: string[]) {
   const proc = await execa(
     "node",
     ["input-program.ts"].concat(vargs),
-    EXEC_OPTS
+    EXEC_OPTS,
   );
 
   return {
@@ -56,9 +56,11 @@ async function runWithStdin(...stdin: string[]) {
 }
 
 async function runWithShPipedData(cmdToPipe: string, vargs: string[]) {
-  const command = `${cmdToPipe} ${vargs
-    .map((v) => (v.includes(" ") ? `"${v}"` : v))
-    .join(" ")} | node input-program.ts`;
+  const command = `${cmdToPipe} ${
+    vargs
+      .map((v) => (v.includes(" ") ? `"${v}"` : v))
+      .join(" ")
+  } | node input-program.ts`;
 
   const proc = spawn(command, {
     ...EXEC_OPTS,
@@ -109,7 +111,7 @@ describe("input", () => {
       const result = await runWithStdin(
         "file1.txt\n",
         "file2.txt\n",
-        "file3.txt"
+        "file3.txt",
       );
 
       expect(result.stderr).toBe("");

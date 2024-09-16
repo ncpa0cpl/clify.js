@@ -12,13 +12,13 @@ export type MapType<T extends OptionType> = T extends BaseTypes ? {
 export type OptionInitParams<T extends OptionType, R extends boolean> = {
     type: T;
     name: string;
+    category?: string;
     char?: string;
     description?: string;
     required?: R;
     default?: MapType<T>;
     validate?(value: MapType<T>): "ok" | {
-        expected: string;
-        received: string;
+        expected?: string;
         message?: string;
     };
 };
@@ -28,6 +28,8 @@ export interface Option<T extends OptionType, R extends boolean> {
     setDefault(value: MapType<T>): Option<T, R>;
 }
 export type OptConstructor<T extends OptionType, R extends boolean> = new (command: Cmd) => Option<T, R>;
+export declare const DEFAULT_CATEGORY: unique symbol;
+export type DEFAULT_CATEGORY = typeof DEFAULT_CATEGORY;
 export declare abstract class Opt<T extends OptionType, R extends boolean> {
     protected command: Cmd;
     static define<T extends OptionType, R extends boolean>(params: OptionInitParams<T, R>): OptConstructor<T, R>;
@@ -46,6 +48,7 @@ export declare abstract class Opt<T extends OptionType, R extends boolean> {
     getName(): string;
     getNameWithType(): string;
     getDescription(): string;
+    getCategory(): string | symbol;
 }
 export declare function defineOption<T extends OptionType>(params: OptionInitParams<T, boolean> & {
     default?: undefined;
