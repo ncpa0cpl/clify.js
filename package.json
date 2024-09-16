@@ -9,6 +9,12 @@
       "require": "./dist/cjs/index.cjs"
     }
   },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
   "description": "A simple CLI framework for JavaScript command line tools.",
   "keywords": [
     "cli",
