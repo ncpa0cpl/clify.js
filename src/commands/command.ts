@@ -9,6 +9,7 @@ import {
 } from "../options/option";
 import { OptionError } from "../options/option-error";
 import { CmdInput, CmdInputBase, CmdInputStream } from "./command-input";
+import "../utils/group-by";
 
 export type CommandResult = any | Promise<any>;
 

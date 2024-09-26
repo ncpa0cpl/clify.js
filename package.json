@@ -36,7 +36,7 @@
     "gjs"
   ],
   "license": "MIT",
-  "version": "1.0.0-beta.4",
+  "version": "1.0.0-beta.5",
   "devDependencies": {
     "@ncpa0cpl/nodepack": "^2.3.0",
     "@types/minimist": "^1.2.5",
@@ -57,6 +57,10 @@
     "fmt": "dprint fmt",
     "fmt:check": "dprint check"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/cjs/utils/group-by.cjs",
+    "./dist/esm/utils/group-by.mjs",
+    "./dist/legacy/utils/group-by.js"
+  ],
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
