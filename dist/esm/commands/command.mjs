@@ -11,6 +11,7 @@ import {
   DEFAULT_CATEGORY
 } from "../options/option.mjs";
 import { CmdInput, CmdInputStream } from "./command-input.mjs";
+import "../utils/group-by.mjs";
 var alphasort = (a, b) => a.localeCompare(b);
 var Cmd = class _Cmd {
   constructor(cmdName, parentCommand) {

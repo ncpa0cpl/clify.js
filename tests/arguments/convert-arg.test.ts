@@ -77,8 +77,22 @@ describe("convertOptionValue", () => {
       expect(conv(minimist(["-v"]).v, "boolean", "")).toBe(true);
     });
 
+    it("should parse thruthy values", () => {
+      expect(conv(minimist(["-v", "1"]).v, "boolean", "")).toBe(true);
+      expect(conv(minimist(["-v", "true"]).v, "boolean", "")).toBe(true);
+      expect(conv(minimist(["-v", "TRUE"]).v, "boolean", "")).toBe(true);
+      expect(conv(minimist(["-v", "True"]).v, "boolean", "")).toBe(true);
+    });
+
+    it("should parse falsy values", () => {
+      expect(conv(minimist(["-v", "0"]).v, "boolean", "")).toBe(false);
+      expect(conv(minimist(["-v", "false"]).v, "boolean", "")).toBe(false);
+      expect(conv(minimist(["-v", "FALSE"]).v, "boolean", "")).toBe(false);
+      expect(conv(minimist(["-v", "False"]).v, "boolean", "")).toBe(false);
+    });
+
     it("should throw if value is not a boolean", () => {
-      expect(conv(minimist(["-v", "1"]).v, "boolean", "")).toBeInstanceOf(
+      expect(conv(minimist(["-v", "10"]).v, "boolean", "")).toBeInstanceOf(
         InvalidOptionError,
       );
       expect(conv(minimist(["-v", "hello"]).v, "boolean", "")).toBeInstanceOf(

@@ -3,6 +3,7 @@ import { StdinIterator } from "../clify";
 import { Opt, OptConstructor, Option, OptionType } from "../options/option";
 import { OptionError } from "../options/option-error";
 import { CmdInputBase } from "./command-input";
+import "../utils/group-by";
 export type CommandResult = any | Promise<any>;
 export interface CommandInput {
     source: "argument" | "stdin";

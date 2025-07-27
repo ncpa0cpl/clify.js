@@ -1,6 +1,9 @@
 import { MapType, OptionType } from "./option";
 import { InvalidOptionError } from "./option-error";
 
+const TRUTHY: any[] = ["true", "True", "TRUE", 1, ""];
+const FALSY: any[] = ["false", "False", "FALSE", 0];
+
 export function convertOptionValue<T extends OptionType>(
   value: string | number | boolean | Array<string | number | boolean>,
   optType: T,
@@ -26,7 +29,7 @@ export function convertOptionValue<T extends OptionType>(
     return mapped as MapType<T>;
   } else {
     if (Array.isArray(value)) {
-      return new InvalidOptionError(optName, "single value", "multiple");
+      return new InvalidOptionError(optName, "multiple", "single value");
     }
 
     switch (optType) {
@@ -34,23 +37,28 @@ export function convertOptionValue<T extends OptionType>(
         return String(value) as MapType<T>;
         break;
       case "boolean":
+        if (TRUTHY.includes(value)) {
+          value = true;
+        } else if (FALSY.includes(value)) {
+          value = false;
+        }
         if (typeof value !== "boolean") {
-          return new InvalidOptionError(optName, "boolean", typeof value);
+          return new InvalidOptionError(optName, typeof value, "boolean");
         }
         return value as MapType<T>;
         break;
       case "number":
         if (typeof value !== "number" || Number.isNaN(value)) {
-          return new InvalidOptionError(optName, "number", typeof value);
+          return new InvalidOptionError(optName, typeof value, "number");
         }
         return value as MapType<T>;
         break;
       case "int":
         if (typeof value !== "number" || Number.isNaN(value)) {
-          return new InvalidOptionError(optName, "integer", typeof value);
+          return new InvalidOptionError(optName, typeof value, "integer");
         }
         if (!Number.isInteger(value)) {
-          return new InvalidOptionError(optName, "integer", "float");
+          return new InvalidOptionError(optName, "float", "integer");
         }
         return value as MapType<T>;
         break;

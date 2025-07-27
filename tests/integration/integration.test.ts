@@ -446,7 +446,7 @@ describe("integration", () => {
           });
         });
 
-        const result = await runProgram(program, ["--obool", "0"]);
+        const result = await runProgram(program, ["--obool", "2"]);
 
         expect(result).toBeInstanceOf(Error);
         expect(logs.error).toEqual([

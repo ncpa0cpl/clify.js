@@ -31,6 +31,7 @@ module.exports = __toCommonJS(command_exports);
 var import_clify = require("../clify.js");
 var import_option = require("../options/option.js");
 var import_command_input = require("./command-input.js");
+var import_group_by = require("../utils/group-by.js");
 var alphasort = (a, b) => a.localeCompare(b);
 var Cmd = class _Cmd {
   constructor(cmdName, parentCommand) {
