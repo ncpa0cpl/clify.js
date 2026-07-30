@@ -63,5 +63,8 @@
     "./dist/esm/utils/group-by.mjs",
     "./dist/legacy/utils/group-by.js"
   ],
+  "repository": {
+    "url": "https://github.com/ncpa0cpl/clify.js"
+  },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
