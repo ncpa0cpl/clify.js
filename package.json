@@ -3,7 +3,7 @@
   "main": "./dist/legacy/index.js",
   "types": "./dist/types/index.d.ts",
   "license": "MIT",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "A simple CLI framework for JavaScript command line tools.",
   "exports": {
