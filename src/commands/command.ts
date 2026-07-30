@@ -364,6 +364,10 @@ export class Cmd implements Command, CommandInitPhase {
       return "fail";
     }
 
+    for (const opt of this.ownOptions) {
+      Opt.notifyParsingComplete(opt);
+    }
+
     if (this.ownInput) {
       await this.ownInput.prepare();
       return this.ownInput.validate() ? "ok" : "fail";

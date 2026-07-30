@@ -44,6 +44,11 @@ export const DEFAULT_CATEGORY = Symbol("default_category");
 export type DEFAULT_CATEGORY = typeof DEFAULT_CATEGORY;
 
 export abstract class Opt<T extends OptionType, R extends boolean> {
+  /** @internal */
+  static notifyParsingComplete(opt: Opt<any, any>) {
+    opt._probramInitialized = true;
+  }
+
   static define<T extends OptionType, R extends boolean>(
     params: OptionInitParams<T, R>,
   ): OptConstructor<T, R> {
@@ -58,6 +63,7 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
   protected _value: MapType<T> | undefined;
   protected _isSet: boolean = false;
   protected _default: MapType<T> | undefined;
+  private _probramInitialized = false;
 
   constructor(protected command: Cmd) {
     this.initParams = this.getInitParams();
@@ -66,6 +72,12 @@ export abstract class Opt<T extends OptionType, R extends boolean> {
   abstract getInitParams(): OptionInitParams<T, R>;
 
   get value(): any {
+    if (!this._probramInitialized) {
+      throw new Error(
+        `'${this.getName()}' value is being accessed before initialization phase. Make sure you only access the option within the command body.`,
+      );
+    }
+
     return this._isSet ? this._value : this._default;
   }
 
