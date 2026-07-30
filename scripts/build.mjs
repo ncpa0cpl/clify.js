@@ -11,7 +11,7 @@ async function main() {
     await build({
       srcDir: p("src"),
       outDir: p("dist"),
-      tsConfig: p("tsconfig.json"),
+      tsConfig: p("tsconfig.build.json"),
       formats: ["cjs", "esm", "legacy"],
       target: "es2020",
       declarations: true,
