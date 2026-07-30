@@ -5,7 +5,7 @@ export type {
   CommandInitPhase,
   CommandInput,
 } from "./commands/command";
-export type { Option } from "./options/option";
+export type { OptConstructor, Option, OptionType } from "./options/option";
 export type { Program } from "./program";
 
 import { Clify } from "./clify";
