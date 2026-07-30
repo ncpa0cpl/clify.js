@@ -1,0 +1,44 @@
+name: Publish Package
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+  repository-projects: write
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build-and-publish:
+    name: Build and Publish
+    permissions:
+      id-token: write # Required for OIDC
+      packages: write
+      contents: write
+      pull-requests: write
+      issues: write
+      repository-projects: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: master
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+      - name: Update npm
+        run: npm install -g npm@latest
+      - name: Installing dependencies
+        run: .yarn/releases/yarn-1.22.19.cjs install
+      - name: Validating syntax
+        run: .yarn/releases/yarn-1.22.19.cjs tsc --noEmit
+      - name: Validating formatting
+        run: .yarn/releases/yarn-1.22.19.cjs fmt:check
+      - name: Building
+        run: .yarn/releases/yarn-1.22.19.cjs build
+      - name: Publishing
+        run: npm publish --access public
