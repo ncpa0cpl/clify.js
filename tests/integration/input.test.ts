@@ -4,14 +4,11 @@ import { describe, expect, it } from "vitest";
 
 const EXEC_OPTS = {
   cwd: __dirname,
-  env: {
-    NODE_OPTIONS: "-r ts-node/register",
-  },
 };
 
 async function runProgram(vargs: string[]) {
   const proc = await execa(
-    "node",
+    "bun",
     ["input-program.ts"].concat(vargs),
     EXEC_OPTS,
   );
@@ -23,7 +20,7 @@ async function runProgram(vargs: string[]) {
 }
 
 async function runWithStdin(...stdin: string[]) {
-  const proc = execa("node", ["input-program.ts"], EXEC_OPTS);
+  const proc = execa("bun", ["input-program.ts"], EXEC_OPTS);
 
   await new Promise<void>((res, rej) => {
     proc.on("spawn", async () => {
@@ -60,7 +57,7 @@ async function runWithShPipedData(cmdToPipe: string, vargs: string[]) {
     vargs
       .map((v) => (v.includes(" ") ? `"${v}"` : v))
       .join(" ")
-  } | node input-program.ts`;
+  } | bun input-program.ts`;
 
   const proc = spawn(command, {
     ...EXEC_OPTS,

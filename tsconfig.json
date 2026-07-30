@@ -1,16 +1,17 @@
 {
-  "include": ["src/**/*"],
   "compilerOptions": {
     "target": "ESNext",
-    "module": "commonjs",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "downlevelIteration": true,
+    "rootDir": "./",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   }
 }

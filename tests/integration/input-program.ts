@@ -1,4 +1,4 @@
-import { configure } from "../../src";
+import { configure } from "../../src/index";
 
 const program = configure((app) => {
   app.main((main) => {
